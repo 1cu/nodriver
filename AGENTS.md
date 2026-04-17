@@ -12,6 +12,11 @@
 - Make changes only in non-generated code files; do not modify generated files directly.
 - Third-party vendored protocol snapshots are an exception to the generated-code rule: edit them only when intentionally refreshing the pinned CDP source, and treat them as source inputs rather than hand-maintained library code.
 
+## Git workflow
+- Use conventional commits for commit messages, e.g. `fix: ...`, `feat: ...`, `docs: ...`.
+- Name branches clearly and consistently, using a short lowercase slash-separated format such as `fix/…`, `feat/…`, or `docs/…`.
+- Keep pull requests concise but well structured: include a short summary, key changes, and any verification performed.
+
 ## Commands
 - Build docs from `docs/` with `make html` or `make markdown`.
 - Package check/build with `python -m build`.
