@@ -7,7 +7,7 @@ import pytest
 from nodriver import cdp
 
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
 
 
 async def test_browser_starts_headless(browser):
@@ -53,18 +53,21 @@ async def test_event_handler_registration_smoke(browser, test_site):
 
     tab = browser.main_tab
     tab.add_handler(cdp.network.RequestWillBeSent, on_request)
-    await tab.get(test_site)
-    await tab.sleep(0.5)
+    try:
+        await tab.get(test_site)
+        await tab.sleep(0.5)
 
-    assert events
-    assert any(url.startswith(test_site) for url in events)
+        assert events
+        assert any(url.startswith(test_site) for url in events)
+    finally:
+        tab.remove_handler(cdp.network.RequestWillBeSent, on_request)
 
 
-async def test_browser_stop_after_disconnect(browser):
-    proc = browser._process
+async def test_browser_stop_after_disconnect(isolated_browser):
+    proc = isolated_browser._process
 
-    await browser.connection.disconnect()
-    browser.stop()
+    await isolated_browser.connection.disconnect()
+    isolated_browser.stop()
     await asyncio.wait_for(proc.wait(), timeout=10)
 
     assert proc.returncode is not None

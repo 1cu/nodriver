@@ -124,8 +124,7 @@ def browser_executable() -> Path:
     return resolve_browser_executable()
 
 
-@pytest_asyncio.fixture
-async def browser(browser_executable: Path):
+async def _start_browser(browser_executable: Path):
     instance = await start(
         headless=True,
         browser_executable_path=str(browser_executable),
@@ -136,17 +135,36 @@ async def browser(browser_executable: Path):
         if instance.targets:
             break
         await asyncio.sleep(0.25)
+    return instance
+
+
+async def _stop_browser(instance):
+    proc = getattr(instance, "_process", None)
+    instance.stop()
+    if proc is not None:
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=10)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await asyncio.wait_for(proc.wait(), timeout=10)
+
+
+@pytest_asyncio.fixture(scope="module", loop_scope="module")
+async def browser(browser_executable: Path):
+    instance = await _start_browser(browser_executable)
     try:
         yield instance
     finally:
-        proc = getattr(instance, "_process", None)
-        instance.stop()
-        if proc is not None:
-            try:
-                await asyncio.wait_for(proc.wait(), timeout=10)
-            except asyncio.TimeoutError:
-                proc.kill()
-                await asyncio.wait_for(proc.wait(), timeout=10)
+        await _stop_browser(instance)
+
+
+@pytest_asyncio.fixture(scope="function", loop_scope="module")
+async def isolated_browser(browser_executable: Path):
+    instance = await _start_browser(browser_executable)
+    try:
+        yield instance
+    finally:
+        await _stop_browser(instance)
 
 
 @pytest.fixture(scope="session")
