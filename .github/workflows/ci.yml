@@ -1,8 +1,9 @@
 name: CI
 
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -76,13 +77,13 @@ jobs:
       - name: Install dependencies
         run: pdm install -G test
 
-      - name: Install Chromium stable
+      - name: Install Chromium and Xvfb
         if: runner.os == 'Linux'
+        id: chromium
         run: |
-          if ! command -v chromium >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install --no-install-recommends -y chromium
-          fi
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y chromium xvfb
+          echo "browser-path=$(command -v chromium || command -v chromium-browser)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Chrome stable
         if: runner.os != 'Linux'
@@ -92,9 +93,16 @@ jobs:
           chrome-version: stable
           install-dependencies: false
 
-      - name: Run browser integration tests
+      - name: Run browser integration tests (Linux)
+        if: runner.os == 'Linux'
         env:
-          NODRIVER_BROWSER_EXECUTABLE: ${{ runner.os == 'Linux' && 'chromium' || steps.setup-chrome.outputs.chrome-path }}
+          NODRIVER_BROWSER_EXECUTABLE: ${{ steps.chromium.outputs.browser-path }}
+        run: xvfb-run -a pdm run test-integration
+
+      - name: Run browser integration tests (macOS/Windows)
+        if: runner.os != 'Linux'
+        env:
+          NODRIVER_BROWSER_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: pdm run test-integration
 
   docs:
