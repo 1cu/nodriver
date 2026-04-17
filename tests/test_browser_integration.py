@@ -11,9 +11,9 @@ pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
 
 
 async def test_browser_starts_headless(browser):
-    assert browser.connection is not None
-    assert browser.main_tab is not None
-    assert browser.tabs
+    assert browser.connection is not None, "browser connection was not established"
+    assert browser.main_tab is not None, "browser.main_tab was not available"
+    assert browser.tabs, f"browser.tabs was empty: {browser.targets!r}"
 
 
 async def test_can_navigate_data_url_and_read_content(browser):
@@ -22,7 +22,7 @@ async def test_can_navigate_data_url_and_read_content(browser):
 
     content = await tab.get_content()
 
-    assert "data url" in content.lower()
+    assert "data url" in content.lower(), f"unexpected content: {content!r}"
 
 
 async def test_can_open_and_close_tab(browser):
@@ -42,7 +42,7 @@ async def test_can_open_and_close_tab(browser):
             break
         await asyncio.sleep(0.1)
 
-    assert len(browser.tabs) == 1
+    assert len(browser.tabs) == 1, f"tabs after close: {browser.tabs!r}"
 
 
 async def test_event_handler_registration_smoke(browser, test_site):
@@ -57,8 +57,10 @@ async def test_event_handler_registration_smoke(browser, test_site):
         await tab.get(test_site)
         await tab.sleep(0.5)
 
-        assert events
-        assert any(url.startswith(test_site) for url in events)
+        assert events, "no network events were captured"
+        assert any(url.startswith(test_site) for url in events), (
+            f"unexpected events: {events!r}"
+        )
     finally:
         tab.remove_handler(cdp.network.RequestWillBeSent, on_request)
 
@@ -70,4 +72,4 @@ async def test_browser_stop_after_disconnect(isolated_browser):
     isolated_browser.stop()
     await asyncio.wait_for(proc.wait(), timeout=10)
 
-    assert proc.returncode is not None
+    assert proc.returncode is not None, "browser process still running after stop()"

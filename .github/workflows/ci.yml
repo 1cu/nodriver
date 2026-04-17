@@ -59,11 +59,14 @@ jobs:
 
   browser-integration:
     name: Browser integration (${{ matrix.os }})
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      NODRIVER_BROWSER_STARTUP_TIMEOUT: "60"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -97,12 +100,14 @@ jobs:
         if: runner.os == 'Linux'
         env:
           NODRIVER_BROWSER_EXECUTABLE: ${{ steps.chromium.outputs.browser-path }}
+        timeout-minutes: 4
         run: xvfb-run -a pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
 
       - name: Run browser integration tests (macOS/Windows)
         if: runner.os != 'Linux'
         env:
           NODRIVER_BROWSER_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
+        timeout-minutes: 4
         run: pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
 
   docs:

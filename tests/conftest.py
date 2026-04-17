@@ -5,6 +5,7 @@ import os
 import shutil
 import socketserver
 import asyncio
+import time
 import subprocess
 import sys
 import threading
@@ -14,7 +15,8 @@ from typing import Iterator
 import pytest
 import pytest_asyncio
 
-from nodriver import start
+from nodriver.core.browser import Browser
+from nodriver.core.config import Config
 
 
 class _ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -112,22 +114,114 @@ def resolve_browser_executable() -> Path:
     raise RuntimeError(msg)
 
 
+def _browser_startup_timeout_seconds() -> float:
+    raw = os.environ.get("NODRIVER_BROWSER_STARTUP_TIMEOUT", "60")
+    try:
+        return float(raw)
+    except ValueError:
+        return 60.0
+
+
+def _tail(text: str | bytes | None, limit: int = 4000) -> str:
+    if text is None:
+        return ""
+    if isinstance(text, bytes):
+        text = text.decode("utf-8", errors="replace")
+    return text[-limit:]
+
+
+def _target_summary(instance: Browser) -> str:
+    targets = getattr(instance, "targets", []) or []
+    if not targets:
+        return "none"
+
+    items = []
+    for target in targets[:5]:
+        raw_target = getattr(target, "target", None)
+        if raw_target is None:
+            items.append(repr(target))
+            continue
+
+        target_id = getattr(raw_target, "target_id", "?")
+        target_type = getattr(raw_target, "type", "?")
+        target_url = getattr(raw_target, "url", "")
+        items.append(f"{target_id}:{target_type}:{target_url}")
+
+    if len(targets) > 5:
+        items.append(f"...(+{len(targets) - 5} more)")
+    return "; ".join(items)
+
+
+async def _process_output_tail(proc: asyncio.subprocess.Process) -> tuple[str, str]:
+    try:
+        if proc.returncode is None:
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=5)
+        return _tail(stdout), _tail(stderr)
+    except Exception as exc:  # noqa: BLE001
+        return "", f"<failed to collect browser output: {exc!r}>"
+
+
+async def _browser_failure_details(
+    instance: Browser,
+    browser_executable: Path,
+    elapsed: float,
+    reason: Exception,
+) -> str:
+    proc = getattr(instance, "_process", None)
+    pid = getattr(proc, "pid", None) if proc else None
+    returncode = getattr(proc, "returncode", None) if proc else None
+    stdout_tail = ""
+    stderr_tail = ""
+
+    if proc is not None:
+        stdout_tail, stderr_tail = await _process_output_tail(proc)
+
+    return (
+        "browser startup failed\n"
+        f"  executable: {browser_executable}\n"
+        f"  timeout_s: {_browser_startup_timeout_seconds()}\n"
+        f"  elapsed_s: {elapsed:.2f}\n"
+        f"  pid: {pid}\n"
+        f"  returncode: {returncode}\n"
+        f"  targets: {_target_summary(instance)}\n"
+        f"  reason: {reason!r}\n"
+        f"  stdout_tail: {stdout_tail or '<empty>'}\n"
+        f"  stderr_tail: {stderr_tail or '<empty>'}"
+    )
+
+
 @pytest.fixture(scope="session")
 def browser_executable() -> Path:
     return resolve_browser_executable()
 
 
 async def _start_browser(browser_executable: Path):
-    instance = await start(
+    config = Config(
         headless=True,
         browser_executable_path=str(browser_executable),
         sandbox=False,
     )
-    for _ in range(20):
-        await instance.update_targets()
-        if instance.targets:
-            break
-        await asyncio.sleep(0.25)
+    instance = Browser(config)
+    started_at = time.monotonic()
+    try:
+        await asyncio.wait_for(
+            instance.start(), timeout=_browser_startup_timeout_seconds()
+        )
+    except Exception as exc:  # noqa: BLE001
+        elapsed = time.monotonic() - started_at
+        details = await _browser_failure_details(
+            instance,
+            browser_executable,
+            elapsed,
+            exc,
+        )
+        await _stop_browser(instance)
+        raise RuntimeError(details) from exc
+
     return instance
 
 
