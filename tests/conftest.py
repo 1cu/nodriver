@@ -129,7 +129,13 @@ async def browser(browser_executable: Path):
     instance = await start(
         headless=True,
         browser_executable_path=str(browser_executable),
+        sandbox=False,
     )
+    for _ in range(20):
+        await instance.update_targets()
+        if instance.targets:
+            break
+        await asyncio.sleep(0.25)
     try:
         yield instance
     finally:

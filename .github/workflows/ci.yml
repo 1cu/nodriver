@@ -76,16 +76,25 @@ jobs:
       - name: Install dependencies
         run: pdm install -G test
 
-      - name: Install Chrome/Chromium stable
+      - name: Install Chromium stable
+        if: runner.os == 'Linux'
+        run: |
+          if ! command -v chromium >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends -y chromium
+          fi
+
+      - name: Setup Chrome stable
+        if: runner.os != 'Linux'
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
-          install-dependencies: true
+          install-dependencies: false
 
       - name: Run browser integration tests
         env:
-          NODRIVER_BROWSER_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
+          NODRIVER_BROWSER_EXECUTABLE: ${{ runner.os == 'Linux' && 'chromium' || steps.setup-chrome.outputs.chrome-path }}
         run: pdm run test-integration
 
   docs:
