@@ -102,12 +102,12 @@ class RuleSet:
             id_=RuleSetId.from_json(json['id']),
             loader_id=network.LoaderId.from_json(json['loaderId']),
             source_text=str(json['sourceText']),
-            backend_node_id=dom.BackendNodeId.from_json(json['backendNodeId']) if json.get('backendNodeId', None) is not None else None,
-            url=str(json['url']) if json.get('url', None) is not None else None,
-            request_id=network.RequestId.from_json(json['requestId']) if json.get('requestId', None) is not None else None,
-            error_type=RuleSetErrorType.from_json(json['errorType']) if json.get('errorType', None) is not None else None,
-            error_message=str(json['errorMessage']) if json.get('errorMessage', None) is not None else None,
-            tag=str(json['tag']) if json.get('tag', None) is not None else None,
+            backend_node_id=dom.BackendNodeId.from_json(json.get('backendNodeId', None)) if json.get('backendNodeId', None) is not None else None,
+            url=str(json.get('url', None)) if json.get('url', None) is not None else None,
+            request_id=network.RequestId.from_json(json.get('requestId', None)) if json.get('requestId', None) is not None else None,
+            error_type=RuleSetErrorType.from_json(json.get('errorType', None)) if json.get('errorType', None) is not None else None,
+            error_message=str(json.get('errorMessage', None)) if json.get('errorMessage', None) is not None else None,
+            tag=str(json.get('tag', None)) if json.get('tag', None) is not None else None,
         )
 
 
@@ -174,6 +174,8 @@ class PreloadingAttemptKey:
 
     url: str
 
+    form_submission: typing.Optional[bool] = None
+
     target_hint: typing.Optional[SpeculationTargetHint] = None
 
     def to_json(self) -> T_JSON_DICT:
@@ -181,6 +183,8 @@ class PreloadingAttemptKey:
         json['loaderId'] = self.loader_id.to_json()
         json['action'] = self.action.to_json()
         json['url'] = self.url
+        if self.form_submission is not None:
+            json['formSubmission'] = self.form_submission
         if self.target_hint is not None:
             json['targetHint'] = self.target_hint.to_json()
         return json
@@ -191,7 +195,8 @@ class PreloadingAttemptKey:
             loader_id=network.LoaderId.from_json(json['loaderId']),
             action=SpeculationAction.from_json(json['action']),
             url=str(json['url']),
-            target_hint=SpeculationTargetHint.from_json(json['targetHint']) if json.get('targetHint', None) is not None else None,
+            form_submission=bool(json.get('formSubmission', None)) if json.get('formSubmission', None) is not None else None,
+            target_hint=SpeculationTargetHint.from_json(json.get('targetHint', None)) if json.get('targetHint', None) is not None else None,
         )
 
 
@@ -325,6 +330,7 @@ class PrerenderFinalStatus(enum.Enum):
     PRERENDER_FAILED_DURING_PREFETCH = "PrerenderFailedDuringPrefetch"
     BROWSING_DATA_REMOVED = "BrowsingDataRemoved"
     PRERENDER_HOST_REUSED = "PrerenderHostReused"
+    FORM_SUBMIT_WHEN_PRERENDERING = "FormSubmitWhenPrerendering"
 
     def to_json(self) -> str:
         return self.value
@@ -426,8 +432,8 @@ class PrerenderMismatchedHeaders:
     def from_json(cls, json: T_JSON_DICT) -> PrerenderMismatchedHeaders:
         return cls(
             header_name=str(json['headerName']),
-            initial_value=str(json['initialValue']) if json.get('initialValue', None) is not None else None,
-            activation_value=str(json['activationValue']) if json.get('activationValue', None) is not None else None,
+            initial_value=str(json.get('initialValue', None)) if json.get('initialValue', None) is not None else None,
+            activation_value=str(json.get('activationValue', None)) if json.get('activationValue', None) is not None else None,
         )
 
 
@@ -546,9 +552,9 @@ class PrerenderStatusUpdated:
             key=PreloadingAttemptKey.from_json(json['key']),
             pipeline_id=PreloadPipelineId.from_json(json['pipelineId']),
             status=PreloadingStatus.from_json(json['status']),
-            prerender_status=PrerenderFinalStatus.from_json(json['prerenderStatus']) if json.get('prerenderStatus', None) is not None else None,
-            disallowed_mojo_interface=str(json['disallowedMojoInterface']) if json.get('disallowedMojoInterface', None) is not None else None,
-            mismatched_headers=[PrerenderMismatchedHeaders.from_json(i) for i in json['mismatchedHeaders']] if json.get('mismatchedHeaders', None) is not None else None
+            prerender_status=PrerenderFinalStatus.from_json(json.get('prerenderStatus', None)) if json.get('prerenderStatus', None) is not None else None,
+            disallowed_mojo_interface=str(json.get('disallowedMojoInterface', None)) if json.get('disallowedMojoInterface', None) is not None else None,
+            mismatched_headers=[PrerenderMismatchedHeaders.from_json(i) for i in json.get('mismatchedHeaders', None)] if json.get('mismatchedHeaders', None) is not None else None
         )
 
 

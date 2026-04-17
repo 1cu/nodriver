@@ -94,11 +94,11 @@ class Bounds:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> Bounds:
         return cls(
-            left=int(json['left']) if json.get('left', None) is not None else None,
-            top=int(json['top']) if json.get('top', None) is not None else None,
-            width=int(json['width']) if json.get('width', None) is not None else None,
-            height=int(json['height']) if json.get('height', None) is not None else None,
-            window_state=WindowState.from_json(json['windowState']) if json.get('windowState', None) is not None else None,
+            left=int(json.get('left', None)) if json.get('left', None) is not None else None,
+            top=int(json.get('top', None)) if json.get('top', None) is not None else None,
+            width=int(json.get('width', None)) if json.get('width', None) is not None else None,
+            height=int(json.get('height', None)) if json.get('height', None) is not None else None,
+            window_state=WindowState.from_json(json.get('windowState', None)) if json.get('windowState', None) is not None else None,
         )
 
 
@@ -119,7 +119,9 @@ class PermissionType(enum.Enum):
     IDLE_DETECTION = "idleDetection"
     KEYBOARD_LOCK = "keyboardLock"
     LOCAL_FONTS = "localFonts"
+    LOCAL_NETWORK = "localNetwork"
     LOCAL_NETWORK_ACCESS = "localNetworkAccess"
+    LOOPBACK_NETWORK = "loopbackNetwork"
     MIDI = "midi"
     MIDI_SYSEX = "midiSysex"
     NFC = "nfc"
@@ -207,11 +209,11 @@ class PermissionDescriptor:
     def from_json(cls, json: T_JSON_DICT) -> PermissionDescriptor:
         return cls(
             name=str(json['name']),
-            sysex=bool(json['sysex']) if json.get('sysex', None) is not None else None,
-            user_visible_only=bool(json['userVisibleOnly']) if json.get('userVisibleOnly', None) is not None else None,
-            allow_without_sanitization=bool(json['allowWithoutSanitization']) if json.get('allowWithoutSanitization', None) is not None else None,
-            allow_without_gesture=bool(json['allowWithoutGesture']) if json.get('allowWithoutGesture', None) is not None else None,
-            pan_tilt_zoom=bool(json['panTiltZoom']) if json.get('panTiltZoom', None) is not None else None,
+            sysex=bool(json.get('sysex', None)) if json.get('sysex', None) is not None else None,
+            user_visible_only=bool(json.get('userVisibleOnly', None)) if json.get('userVisibleOnly', None) is not None else None,
+            allow_without_sanitization=bool(json.get('allowWithoutSanitization', None)) if json.get('allowWithoutSanitization', None) is not None else None,
+            allow_without_gesture=bool(json.get('allowWithoutGesture', None)) if json.get('allowWithoutGesture', None) is not None else None,
+            pan_tilt_zoom=bool(json.get('panTiltZoom', None)) if json.get('panTiltZoom', None) is not None else None,
         )
 
 
@@ -815,5 +817,5 @@ class DownloadProgress:
             total_bytes=float(json['totalBytes']),
             received_bytes=float(json['receivedBytes']),
             state=str(json['state']),
-            file_path=str(json['filePath']) if json.get('filePath', None) is not None else None
+            file_path=str(json.get('filePath', None)) if json.get('filePath', None) is not None else None
         )

@@ -385,7 +385,7 @@ class ReportHeapSnapshotProgress:
         return cls(
             done=int(json['done']),
             total=int(json['total']),
-            finished=bool(json['finished']) if json.get('finished', None) is not None else None
+            finished=bool(json.get('finished', None)) if json.get('finished', None) is not None else None
         )
 
 

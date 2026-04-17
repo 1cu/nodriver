@@ -86,9 +86,9 @@ class Animation:
             start_time=float(json['startTime']),
             current_time=float(json['currentTime']),
             type_=str(json['type']),
-            source=AnimationEffect.from_json(json['source']) if json.get('source', None) is not None else None,
-            css_id=str(json['cssId']) if json.get('cssId', None) is not None else None,
-            view_or_scroll_timeline=ViewOrScrollTimeline.from_json(json['viewOrScrollTimeline']) if json.get('viewOrScrollTimeline', None) is not None else None,
+            source=AnimationEffect.from_json(json.get('source', None)) if json.get('source', None) is not None else None,
+            css_id=str(json.get('cssId', None)) if json.get('cssId', None) is not None else None,
+            view_or_scroll_timeline=ViewOrScrollTimeline.from_json(json.get('viewOrScrollTimeline', None)) if json.get('viewOrScrollTimeline', None) is not None else None,
         )
 
 
@@ -133,10 +133,10 @@ class ViewOrScrollTimeline:
     def from_json(cls, json: T_JSON_DICT) -> ViewOrScrollTimeline:
         return cls(
             axis=dom.ScrollOrientation.from_json(json['axis']),
-            source_node_id=dom.BackendNodeId.from_json(json['sourceNodeId']) if json.get('sourceNodeId', None) is not None else None,
-            start_offset=float(json['startOffset']) if json.get('startOffset', None) is not None else None,
-            end_offset=float(json['endOffset']) if json.get('endOffset', None) is not None else None,
-            subject_node_id=dom.BackendNodeId.from_json(json['subjectNodeId']) if json.get('subjectNodeId', None) is not None else None,
+            source_node_id=dom.BackendNodeId.from_json(json.get('sourceNodeId', None)) if json.get('sourceNodeId', None) is not None else None,
+            start_offset=float(json.get('startOffset', None)) if json.get('startOffset', None) is not None else None,
+            end_offset=float(json.get('endOffset', None)) if json.get('endOffset', None) is not None else None,
+            subject_node_id=dom.BackendNodeId.from_json(json.get('subjectNodeId', None)) if json.get('subjectNodeId', None) is not None else None,
         )
 
 
@@ -154,9 +154,6 @@ class AnimationEffect:
     #: ``AnimationEffect``'s iteration start.
     iteration_start: float
 
-    #: ``AnimationEffect``'s iterations.
-    iterations: float
-
     #: ``AnimationEffect``'s iteration duration.
     #: Milliseconds for time based animations and
     #: percentage [0 - 100] for scroll driven animations
@@ -172,6 +169,9 @@ class AnimationEffect:
     #: ``AnimationEffect``'s timing function.
     easing: str
 
+    #: ``AnimationEffect``'s iterations. Omitted if the value is infinite.
+    iterations: typing.Optional[float] = None
+
     #: ``AnimationEffect``'s target node.
     backend_node_id: typing.Optional[dom.BackendNodeId] = None
 
@@ -183,11 +183,12 @@ class AnimationEffect:
         json['delay'] = self.delay
         json['endDelay'] = self.end_delay
         json['iterationStart'] = self.iteration_start
-        json['iterations'] = self.iterations
         json['duration'] = self.duration
         json['direction'] = self.direction
         json['fill'] = self.fill
         json['easing'] = self.easing
+        if self.iterations is not None:
+            json['iterations'] = self.iterations
         if self.backend_node_id is not None:
             json['backendNodeId'] = self.backend_node_id.to_json()
         if self.keyframes_rule is not None:
@@ -200,13 +201,13 @@ class AnimationEffect:
             delay=float(json['delay']),
             end_delay=float(json['endDelay']),
             iteration_start=float(json['iterationStart']),
-            iterations=float(json['iterations']),
             duration=float(json['duration']),
             direction=str(json['direction']),
             fill=str(json['fill']),
             easing=str(json['easing']),
-            backend_node_id=dom.BackendNodeId.from_json(json['backendNodeId']) if json.get('backendNodeId', None) is not None else None,
-            keyframes_rule=KeyframesRule.from_json(json['keyframesRule']) if json.get('keyframesRule', None) is not None else None,
+            iterations=float(json.get('iterations', None)) if json.get('iterations', None) is not None else None,
+            backend_node_id=dom.BackendNodeId.from_json(json.get('backendNodeId', None)) if json.get('backendNodeId', None) is not None else None,
+            keyframes_rule=KeyframesRule.from_json(json.get('keyframesRule', None)) if json.get('keyframesRule', None) is not None else None,
         )
 
 
@@ -232,7 +233,7 @@ class KeyframesRule:
     def from_json(cls, json: T_JSON_DICT) -> KeyframesRule:
         return cls(
             keyframes=[KeyframeStyle.from_json(i) for i in json['keyframes']],
-            name=str(json['name']) if json.get('name', None) is not None else None,
+            name=str(json.get('name', None)) if json.get('name', None) is not None else None,
         )
 
 

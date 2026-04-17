@@ -40,7 +40,6 @@ class ProtocolException(Exception):
         self.code = None
         self.args = args
         if isinstance(args[0], dict):
-
             self.message = args[0].get("message", None)  # noqa
             self.code = args[0].get("code", None)
 
@@ -86,10 +85,9 @@ class Transaction(asyncio.Future):
         self.__cdp_obj__ = cdp_obj
         self.connection = None
 
-        self.method, *params = next(self.__cdp_obj__).values()
-        if params:
-            params = params.pop()
-        self.params = params
+        cmd = next(self.__cdp_obj__)
+        self.method = cmd["method"]
+        self.params = cmd.get("params", {})
 
     @property
     def message(self):
@@ -474,7 +472,6 @@ class Connection(metaclass=CantTouchThis):
                                     callback
                                 ):
                                     try:
-
                                         asyncio.create_task(callback(event, self))
                                     except TypeError as e:
                                         asyncio.create_task(callback(event))

@@ -81,13 +81,13 @@ class LogEntry:
             level=str(json['level']),
             text=str(json['text']),
             timestamp=runtime.Timestamp.from_json(json['timestamp']),
-            category=str(json['category']) if json.get('category', None) is not None else None,
-            url=str(json['url']) if json.get('url', None) is not None else None,
-            line_number=int(json['lineNumber']) if json.get('lineNumber', None) is not None else None,
-            stack_trace=runtime.StackTrace.from_json(json['stackTrace']) if json.get('stackTrace', None) is not None else None,
-            network_request_id=network.RequestId.from_json(json['networkRequestId']) if json.get('networkRequestId', None) is not None else None,
-            worker_id=str(json['workerId']) if json.get('workerId', None) is not None else None,
-            args=[runtime.RemoteObject.from_json(i) for i in json['args']] if json.get('args', None) is not None else None,
+            category=str(json.get('category', None)) if json.get('category', None) is not None else None,
+            url=str(json.get('url', None)) if json.get('url', None) is not None else None,
+            line_number=int(json.get('lineNumber', None)) if json.get('lineNumber', None) is not None else None,
+            stack_trace=runtime.StackTrace.from_json(json.get('stackTrace', None)) if json.get('stackTrace', None) is not None else None,
+            network_request_id=network.RequestId.from_json(json.get('networkRequestId', None)) if json.get('networkRequestId', None) is not None else None,
+            worker_id=str(json.get('workerId', None)) if json.get('workerId', None) is not None else None,
+            args=[runtime.RemoteObject.from_json(i) for i in json.get('args', None)] if json.get('args', None) is not None else None,
         )
 
 

@@ -101,8 +101,8 @@ class StickyPositionConstraint:
         return cls(
             sticky_box_rect=dom.Rect.from_json(json['stickyBoxRect']),
             containing_block_rect=dom.Rect.from_json(json['containingBlockRect']),
-            nearest_layer_shifting_sticky_box=LayerId.from_json(json['nearestLayerShiftingStickyBox']) if json.get('nearestLayerShiftingStickyBox', None) is not None else None,
-            nearest_layer_shifting_containing_block=LayerId.from_json(json['nearestLayerShiftingContainingBlock']) if json.get('nearestLayerShiftingContainingBlock', None) is not None else None,
+            nearest_layer_shifting_sticky_box=LayerId.from_json(json.get('nearestLayerShiftingStickyBox', None)) if json.get('nearestLayerShiftingStickyBox', None) is not None else None,
+            nearest_layer_shifting_containing_block=LayerId.from_json(json.get('nearestLayerShiftingContainingBlock', None)) if json.get('nearestLayerShiftingContainingBlock', None) is not None else None,
         )
 
 
@@ -229,15 +229,15 @@ class Layer:
             height=float(json['height']),
             paint_count=int(json['paintCount']),
             draws_content=bool(json['drawsContent']),
-            parent_layer_id=LayerId.from_json(json['parentLayerId']) if json.get('parentLayerId', None) is not None else None,
-            backend_node_id=dom.BackendNodeId.from_json(json['backendNodeId']) if json.get('backendNodeId', None) is not None else None,
-            transform=[float(i) for i in json['transform']] if json.get('transform', None) is not None else None,
-            anchor_x=float(json['anchorX']) if json.get('anchorX', None) is not None else None,
-            anchor_y=float(json['anchorY']) if json.get('anchorY', None) is not None else None,
-            anchor_z=float(json['anchorZ']) if json.get('anchorZ', None) is not None else None,
-            invisible=bool(json['invisible']) if json.get('invisible', None) is not None else None,
-            scroll_rects=[ScrollRect.from_json(i) for i in json['scrollRects']] if json.get('scrollRects', None) is not None else None,
-            sticky_position_constraint=StickyPositionConstraint.from_json(json['stickyPositionConstraint']) if json.get('stickyPositionConstraint', None) is not None else None,
+            parent_layer_id=LayerId.from_json(json.get('parentLayerId', None)) if json.get('parentLayerId', None) is not None else None,
+            backend_node_id=dom.BackendNodeId.from_json(json.get('backendNodeId', None)) if json.get('backendNodeId', None) is not None else None,
+            transform=[float(i) for i in json.get('transform', None)] if json.get('transform', None) is not None else None,
+            anchor_x=float(json.get('anchorX', None)) if json.get('anchorX', None) is not None else None,
+            anchor_y=float(json.get('anchorY', None)) if json.get('anchorY', None) is not None else None,
+            anchor_z=float(json.get('anchorZ', None)) if json.get('anchorZ', None) is not None else None,
+            invisible=bool(json.get('invisible', None)) if json.get('invisible', None) is not None else None,
+            scroll_rects=[ScrollRect.from_json(i) for i in json.get('scrollRects', None)] if json.get('scrollRects', None) is not None else None,
+            sticky_position_constraint=StickyPositionConstraint.from_json(json.get('stickyPositionConstraint', None)) if json.get('stickyPositionConstraint', None) is not None else None,
         )
 
 
@@ -460,5 +460,5 @@ class LayerTreeDidChange:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> LayerTreeDidChange:
         return cls(
-            layers=[Layer.from_json(i) for i in json['layers']] if json.get('layers', None) is not None else None
+            layers=[Layer.from_json(i) for i in json.get('layers', None)] if json.get('layers', None) is not None else None
         )

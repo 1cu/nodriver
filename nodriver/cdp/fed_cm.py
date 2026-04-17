@@ -129,8 +129,8 @@ class Account:
             idp_config_url=str(json['idpConfigUrl']),
             idp_login_url=str(json['idpLoginUrl']),
             login_state=LoginState.from_json(json['loginState']),
-            terms_of_service_url=str(json['termsOfServiceUrl']) if json.get('termsOfServiceUrl', None) is not None else None,
-            privacy_policy_url=str(json['privacyPolicyUrl']) if json.get('privacyPolicyUrl', None) is not None else None,
+            terms_of_service_url=str(json.get('termsOfServiceUrl', None)) if json.get('termsOfServiceUrl', None) is not None else None,
+            privacy_policy_url=str(json.get('privacyPolicyUrl', None)) if json.get('privacyPolicyUrl', None) is not None else None,
         )
 
 
@@ -263,7 +263,7 @@ class DialogShown:
             dialog_type=DialogType.from_json(json['dialogType']),
             accounts=[Account.from_json(i) for i in json['accounts']],
             title=str(json['title']),
-            subtitle=str(json['subtitle']) if json.get('subtitle', None) is not None else None
+            subtitle=str(json.get('subtitle', None)) if json.get('subtitle', None) is not None else None
         )
 
 

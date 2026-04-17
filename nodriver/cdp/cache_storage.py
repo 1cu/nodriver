@@ -140,7 +140,7 @@ class Cache:
             security_origin=str(json['securityOrigin']),
             storage_key=str(json['storageKey']),
             cache_name=str(json['cacheName']),
-            storage_bucket=storage.StorageBucket.from_json(json['storageBucket']) if json.get('storageBucket', None) is not None else None,
+            storage_bucket=storage.StorageBucket.from_json(json.get('storageBucket', None)) if json.get('storageBucket', None) is not None else None,
         )
 
 

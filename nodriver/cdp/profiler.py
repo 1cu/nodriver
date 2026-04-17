@@ -58,10 +58,10 @@ class ProfileNode:
         return cls(
             id_=int(json['id']),
             call_frame=runtime.CallFrame.from_json(json['callFrame']),
-            hit_count=int(json['hitCount']) if json.get('hitCount', None) is not None else None,
-            children=[int(i) for i in json['children']] if json.get('children', None) is not None else None,
-            deopt_reason=str(json['deoptReason']) if json.get('deoptReason', None) is not None else None,
-            position_ticks=[PositionTickInfo.from_json(i) for i in json['positionTicks']] if json.get('positionTicks', None) is not None else None,
+            hit_count=int(json.get('hitCount', None)) if json.get('hitCount', None) is not None else None,
+            children=[int(i) for i in json.get('children', None)] if json.get('children', None) is not None else None,
+            deopt_reason=str(json.get('deoptReason', None)) if json.get('deoptReason', None) is not None else None,
+            position_ticks=[PositionTickInfo.from_json(i) for i in json.get('positionTicks', None)] if json.get('positionTicks', None) is not None else None,
         )
 
 
@@ -103,8 +103,8 @@ class Profile:
             nodes=[ProfileNode.from_json(i) for i in json['nodes']],
             start_time=float(json['startTime']),
             end_time=float(json['endTime']),
-            samples=[int(i) for i in json['samples']] if json.get('samples', None) is not None else None,
-            time_deltas=[int(i) for i in json['timeDeltas']] if json.get('timeDeltas', None) is not None else None,
+            samples=[int(i) for i in json.get('samples', None)] if json.get('samples', None) is not None else None,
+            time_deltas=[int(i) for i in json.get('timeDeltas', None)] if json.get('timeDeltas', None) is not None else None,
         )
 
 
@@ -368,7 +368,7 @@ class ConsoleProfileFinished:
             id_=str(json['id']),
             location=debugger.Location.from_json(json['location']),
             profile=Profile.from_json(json['profile']),
-            title=str(json['title']) if json.get('title', None) is not None else None
+            title=str(json.get('title', None)) if json.get('title', None) is not None else None
         )
 
 
@@ -389,7 +389,7 @@ class ConsoleProfileStarted:
         return cls(
             id_=str(json['id']),
             location=debugger.Location.from_json(json['location']),
-            title=str(json['title']) if json.get('title', None) is not None else None
+            title=str(json.get('title', None)) if json.get('title', None) is not None else None
         )
 
 

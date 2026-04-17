@@ -84,15 +84,15 @@ class TraceConfig:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> TraceConfig:
         return cls(
-            record_mode=str(json['recordMode']) if json.get('recordMode', None) is not None else None,
-            trace_buffer_size_in_kb=float(json['traceBufferSizeInKb']) if json.get('traceBufferSizeInKb', None) is not None else None,
-            enable_sampling=bool(json['enableSampling']) if json.get('enableSampling', None) is not None else None,
-            enable_systrace=bool(json['enableSystrace']) if json.get('enableSystrace', None) is not None else None,
-            enable_argument_filter=bool(json['enableArgumentFilter']) if json.get('enableArgumentFilter', None) is not None else None,
-            included_categories=[str(i) for i in json['includedCategories']] if json.get('includedCategories', None) is not None else None,
-            excluded_categories=[str(i) for i in json['excludedCategories']] if json.get('excludedCategories', None) is not None else None,
-            synthetic_delays=[str(i) for i in json['syntheticDelays']] if json.get('syntheticDelays', None) is not None else None,
-            memory_dump_config=MemoryDumpConfig.from_json(json['memoryDumpConfig']) if json.get('memoryDumpConfig', None) is not None else None,
+            record_mode=str(json.get('recordMode', None)) if json.get('recordMode', None) is not None else None,
+            trace_buffer_size_in_kb=float(json.get('traceBufferSizeInKb', None)) if json.get('traceBufferSizeInKb', None) is not None else None,
+            enable_sampling=bool(json.get('enableSampling', None)) if json.get('enableSampling', None) is not None else None,
+            enable_systrace=bool(json.get('enableSystrace', None)) if json.get('enableSystrace', None) is not None else None,
+            enable_argument_filter=bool(json.get('enableArgumentFilter', None)) if json.get('enableArgumentFilter', None) is not None else None,
+            included_categories=[str(i) for i in json.get('includedCategories', None)] if json.get('includedCategories', None) is not None else None,
+            excluded_categories=[str(i) for i in json.get('excludedCategories', None)] if json.get('excludedCategories', None) is not None else None,
+            synthetic_delays=[str(i) for i in json.get('syntheticDelays', None)] if json.get('syntheticDelays', None) is not None else None,
+            memory_dump_config=MemoryDumpConfig.from_json(json.get('memoryDumpConfig', None)) if json.get('memoryDumpConfig', None) is not None else None,
         )
 
 
@@ -188,6 +188,21 @@ def get_categories() -> typing.Generator[T_JSON_DICT,T_JSON_DICT,typing.List[str
     }
     json = yield cmd_dict
     return [str(i) for i in json['categories']]
+
+
+def get_track_event_descriptor() -> typing.Generator[T_JSON_DICT,T_JSON_DICT,str]:
+    '''
+    Return a descriptor for all available tracing categories.
+
+    **EXPERIMENTAL**
+
+    :returns: Base64-encoded serialized perfetto.protos.TrackEventDescriptor protobuf message. (Encoded as a base64 string when passed over JSON)
+    '''
+    cmd_dict: T_JSON_DICT = {
+        'method': 'Tracing.getTrackEventDescriptor',
+    }
+    json = yield cmd_dict
+    return str(json['descriptor'])
 
 
 def record_clock_sync_marker(
@@ -311,9 +326,9 @@ class BufferUsage:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> BufferUsage:
         return cls(
-            percent_full=float(json['percentFull']) if json.get('percentFull', None) is not None else None,
-            event_count=float(json['eventCount']) if json.get('eventCount', None) is not None else None,
-            value=float(json['value']) if json.get('value', None) is not None else None
+            percent_full=float(json.get('percentFull', None)) if json.get('percentFull', None) is not None else None,
+            event_count=float(json.get('eventCount', None)) if json.get('eventCount', None) is not None else None,
+            value=float(json.get('value', None)) if json.get('value', None) is not None else None
         )
 
 
@@ -356,7 +371,7 @@ class TracingComplete:
     def from_json(cls, json: T_JSON_DICT) -> TracingComplete:
         return cls(
             data_loss_occurred=bool(json['dataLossOccurred']),
-            stream=io.StreamHandle.from_json(json['stream']) if json.get('stream', None) is not None else None,
-            trace_format=StreamFormat.from_json(json['traceFormat']) if json.get('traceFormat', None) is not None else None,
-            stream_compression=StreamCompression.from_json(json['streamCompression']) if json.get('streamCompression', None) is not None else None
+            stream=io.StreamHandle.from_json(json.get('stream', None)) if json.get('stream', None) is not None else None,
+            trace_format=StreamFormat.from_json(json.get('traceFormat', None)) if json.get('traceFormat', None) is not None else None,
+            stream_compression=StreamCompression.from_json(json.get('streamCompression', None)) if json.get('streamCompression', None) is not None else None
         )

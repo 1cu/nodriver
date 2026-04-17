@@ -363,8 +363,8 @@ class ResourceTiming:
             push_end=float(json['pushEnd']),
             receive_headers_start=float(json['receiveHeadersStart']),
             receive_headers_end=float(json['receiveHeadersEnd']),
-            worker_router_evaluation_start=float(json['workerRouterEvaluationStart']) if json.get('workerRouterEvaluationStart', None) is not None else None,
-            worker_cache_lookup_start=float(json['workerCacheLookupStart']) if json.get('workerCacheLookupStart', None) is not None else None,
+            worker_router_evaluation_start=float(json.get('workerRouterEvaluationStart', None)) if json.get('workerRouterEvaluationStart', None) is not None else None,
+            worker_cache_lookup_start=float(json.get('workerCacheLookupStart', None)) if json.get('workerCacheLookupStart', None) is not None else None,
         )
 
 
@@ -386,6 +386,24 @@ class ResourcePriority(enum.Enum):
         return cls(json)
 
 
+class RenderBlockingBehavior(enum.Enum):
+    '''
+    The render-blocking behavior of a resource request.
+    '''
+    BLOCKING = "Blocking"
+    IN_BODY_PARSER_BLOCKING = "InBodyParserBlocking"
+    NON_BLOCKING = "NonBlocking"
+    NON_BLOCKING_DYNAMIC = "NonBlockingDynamic"
+    POTENTIALLY_BLOCKING = "PotentiallyBlocking"
+
+    def to_json(self) -> str:
+        return self.value
+
+    @classmethod
+    def from_json(cls, json: str) -> RenderBlockingBehavior:
+        return cls(json)
+
+
 @dataclass
 class PostDataEntry:
     '''
@@ -402,7 +420,7 @@ class PostDataEntry:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> PostDataEntry:
         return cls(
-            bytes_=str(json['bytes']) if json.get('bytes', None) is not None else None,
+            bytes_=str(json.get('bytes', None)) if json.get('bytes', None) is not None else None,
         )
 
 
@@ -491,15 +509,15 @@ class Request:
             headers=Headers.from_json(json['headers']),
             initial_priority=ResourcePriority.from_json(json['initialPriority']),
             referrer_policy=str(json['referrerPolicy']),
-            url_fragment=str(json['urlFragment']) if json.get('urlFragment', None) is not None else None,
-            post_data=str(json['postData']) if json.get('postData', None) is not None else None,
-            has_post_data=bool(json['hasPostData']) if json.get('hasPostData', None) is not None else None,
-            post_data_entries=[PostDataEntry.from_json(i) for i in json['postDataEntries']] if json.get('postDataEntries', None) is not None else None,
-            mixed_content_type=security.MixedContentType.from_json(json['mixedContentType']) if json.get('mixedContentType', None) is not None else None,
-            is_link_preload=bool(json['isLinkPreload']) if json.get('isLinkPreload', None) is not None else None,
-            trust_token_params=TrustTokenParams.from_json(json['trustTokenParams']) if json.get('trustTokenParams', None) is not None else None,
-            is_same_site=bool(json['isSameSite']) if json.get('isSameSite', None) is not None else None,
-            is_ad_related=bool(json['isAdRelated']) if json.get('isAdRelated', None) is not None else None,
+            url_fragment=str(json.get('urlFragment', None)) if json.get('urlFragment', None) is not None else None,
+            post_data=str(json.get('postData', None)) if json.get('postData', None) is not None else None,
+            has_post_data=bool(json.get('hasPostData', None)) if json.get('hasPostData', None) is not None else None,
+            post_data_entries=[PostDataEntry.from_json(i) for i in json.get('postDataEntries', None)] if json.get('postDataEntries', None) is not None else None,
+            mixed_content_type=security.MixedContentType.from_json(json.get('mixedContentType', None)) if json.get('mixedContentType', None) is not None else None,
+            is_link_preload=bool(json.get('isLinkPreload', None)) if json.get('isLinkPreload', None) is not None else None,
+            trust_token_params=TrustTokenParams.from_json(json.get('trustTokenParams', None)) if json.get('trustTokenParams', None) is not None else None,
+            is_same_site=bool(json.get('isSameSite', None)) if json.get('isSameSite', None) is not None else None,
+            is_ad_related=bool(json.get('isAdRelated', None)) if json.get('isAdRelated', None) is not None else None,
         )
 
 
@@ -648,9 +666,9 @@ class SecurityDetails:
             signed_certificate_timestamp_list=[SignedCertificateTimestamp.from_json(i) for i in json['signedCertificateTimestampList']],
             certificate_transparency_compliance=CertificateTransparencyCompliance.from_json(json['certificateTransparencyCompliance']),
             encrypted_client_hello=bool(json['encryptedClientHello']),
-            key_exchange_group=str(json['keyExchangeGroup']) if json.get('keyExchangeGroup', None) is not None else None,
-            mac=str(json['mac']) if json.get('mac', None) is not None else None,
-            server_signature_algorithm=int(json['serverSignatureAlgorithm']) if json.get('serverSignatureAlgorithm', None) is not None else None,
+            key_exchange_group=str(json.get('keyExchangeGroup', None)) if json.get('keyExchangeGroup', None) is not None else None,
+            mac=str(json.get('mac', None)) if json.get('mac', None) is not None else None,
+            server_signature_algorithm=int(json.get('serverSignatureAlgorithm', None)) if json.get('serverSignatureAlgorithm', None) is not None else None,
         )
 
 
@@ -699,27 +717,6 @@ class BlockedReason(enum.Enum):
         return cls(json)
 
 
-class IpProxyStatus(enum.Enum):
-    '''
-    Sets Controls for IP Proxy of requests.
-    Page reload is required before the new behavior will be observed.
-    '''
-    AVAILABLE = "Available"
-    FEATURE_NOT_ENABLED = "FeatureNotEnabled"
-    MASKED_DOMAIN_LIST_NOT_ENABLED = "MaskedDomainListNotEnabled"
-    MASKED_DOMAIN_LIST_NOT_POPULATED = "MaskedDomainListNotPopulated"
-    AUTH_TOKENS_UNAVAILABLE = "AuthTokensUnavailable"
-    UNAVAILABLE = "Unavailable"
-    BYPASSED_BY_DEV_TOOLS = "BypassedByDevTools"
-
-    def to_json(self) -> str:
-        return self.value
-
-    @classmethod
-    def from_json(cls, json: str) -> IpProxyStatus:
-        return cls(json)
-
-
 class CorsError(enum.Enum):
     '''
     The reason why request was blocked.
@@ -743,21 +740,14 @@ class CorsError(enum.Enum):
     PREFLIGHT_INVALID_ALLOW_CREDENTIALS = "PreflightInvalidAllowCredentials"
     PREFLIGHT_MISSING_ALLOW_EXTERNAL = "PreflightMissingAllowExternal"
     PREFLIGHT_INVALID_ALLOW_EXTERNAL = "PreflightInvalidAllowExternal"
-    PREFLIGHT_MISSING_ALLOW_PRIVATE_NETWORK = "PreflightMissingAllowPrivateNetwork"
-    PREFLIGHT_INVALID_ALLOW_PRIVATE_NETWORK = "PreflightInvalidAllowPrivateNetwork"
     INVALID_ALLOW_METHODS_PREFLIGHT_RESPONSE = "InvalidAllowMethodsPreflightResponse"
     INVALID_ALLOW_HEADERS_PREFLIGHT_RESPONSE = "InvalidAllowHeadersPreflightResponse"
     METHOD_DISALLOWED_BY_PREFLIGHT_RESPONSE = "MethodDisallowedByPreflightResponse"
     HEADER_DISALLOWED_BY_PREFLIGHT_RESPONSE = "HeaderDisallowedByPreflightResponse"
     REDIRECT_CONTAINS_CREDENTIALS = "RedirectContainsCredentials"
-    INSECURE_PRIVATE_NETWORK = "InsecurePrivateNetwork"
-    INVALID_PRIVATE_NETWORK_ACCESS = "InvalidPrivateNetworkAccess"
-    UNEXPECTED_PRIVATE_NETWORK_ACCESS = "UnexpectedPrivateNetworkAccess"
+    INSECURE_LOCAL_NETWORK = "InsecureLocalNetwork"
+    INVALID_LOCAL_NETWORK_ACCESS = "InvalidLocalNetworkAccess"
     NO_CORS_REDIRECT_MODE_NOT_FOLLOW = "NoCorsRedirectModeNotFollow"
-    PREFLIGHT_MISSING_PRIVATE_NETWORK_ACCESS_ID = "PreflightMissingPrivateNetworkAccessId"
-    PREFLIGHT_MISSING_PRIVATE_NETWORK_ACCESS_NAME = "PreflightMissingPrivateNetworkAccessName"
-    PRIVATE_NETWORK_ACCESS_PERMISSION_UNAVAILABLE = "PrivateNetworkAccessPermissionUnavailable"
-    PRIVATE_NETWORK_ACCESS_PERMISSION_DENIED = "PrivateNetworkAccessPermissionDenied"
     LOCAL_NETWORK_ACCESS_PERMISSION_DENIED = "LocalNetworkAccessPermissionDenied"
 
     def to_json(self) -> str:
@@ -835,7 +825,7 @@ class TrustTokenParams:
         return cls(
             operation=TrustTokenOperationType.from_json(json['operation']),
             refresh_policy=str(json['refreshPolicy']),
-            issuers=[str(i) for i in json['issuers']] if json.get('issuers', None) is not None else None,
+            issuers=[str(i) for i in json.get('issuers', None)] if json.get('issuers', None) is not None else None,
         )
 
 
@@ -917,9 +907,9 @@ class ServiceWorkerRouterInfo:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> ServiceWorkerRouterInfo:
         return cls(
-            rule_id_matched=int(json['ruleIdMatched']) if json.get('ruleIdMatched', None) is not None else None,
-            matched_source_type=ServiceWorkerRouterSource.from_json(json['matchedSourceType']) if json.get('matchedSourceType', None) is not None else None,
-            actual_source_type=ServiceWorkerRouterSource.from_json(json['actualSourceType']) if json.get('actualSourceType', None) is not None else None,
+            rule_id_matched=int(json.get('ruleIdMatched', None)) if json.get('ruleIdMatched', None) is not None else None,
+            matched_source_type=ServiceWorkerRouterSource.from_json(json.get('matchedSourceType', None)) if json.get('matchedSourceType', None) is not None else None,
+            actual_source_type=ServiceWorkerRouterSource.from_json(json.get('actualSourceType', None)) if json.get('actualSourceType', None) is not None else None,
         )
 
 
@@ -1012,10 +1002,6 @@ class Response:
     #: Security details for the request.
     security_details: typing.Optional[SecurityDetails] = None
 
-    #: Indicates whether the request was sent through IP Protection proxies. If
-    #: set to true, the request used the IP Protection privacy feature.
-    is_ip_protection_used: typing.Optional[bool] = None
-
     def to_json(self) -> T_JSON_DICT:
         json: T_JSON_DICT = dict()
         json['url'] = self.url
@@ -1062,8 +1048,6 @@ class Response:
             json['alternateProtocolUsage'] = self.alternate_protocol_usage.to_json()
         if self.security_details is not None:
             json['securityDetails'] = self.security_details.to_json()
-        if self.is_ip_protection_used is not None:
-            json['isIpProtectionUsed'] = self.is_ip_protection_used
         return json
 
     @classmethod
@@ -1079,24 +1063,23 @@ class Response:
             connection_id=float(json['connectionId']),
             encoded_data_length=float(json['encodedDataLength']),
             security_state=security.SecurityState.from_json(json['securityState']),
-            headers_text=str(json['headersText']) if json.get('headersText', None) is not None else None,
-            request_headers=Headers.from_json(json['requestHeaders']) if json.get('requestHeaders', None) is not None else None,
-            request_headers_text=str(json['requestHeadersText']) if json.get('requestHeadersText', None) is not None else None,
-            remote_ip_address=str(json['remoteIPAddress']) if json.get('remoteIPAddress', None) is not None else None,
-            remote_port=int(json['remotePort']) if json.get('remotePort', None) is not None else None,
-            from_disk_cache=bool(json['fromDiskCache']) if json.get('fromDiskCache', None) is not None else None,
-            from_service_worker=bool(json['fromServiceWorker']) if json.get('fromServiceWorker', None) is not None else None,
-            from_prefetch_cache=bool(json['fromPrefetchCache']) if json.get('fromPrefetchCache', None) is not None else None,
-            from_early_hints=bool(json['fromEarlyHints']) if json.get('fromEarlyHints', None) is not None else None,
-            service_worker_router_info=ServiceWorkerRouterInfo.from_json(json['serviceWorkerRouterInfo']) if json.get('serviceWorkerRouterInfo', None) is not None else None,
-            timing=ResourceTiming.from_json(json['timing']) if json.get('timing', None) is not None else None,
-            service_worker_response_source=ServiceWorkerResponseSource.from_json(json['serviceWorkerResponseSource']) if json.get('serviceWorkerResponseSource', None) is not None else None,
-            response_time=TimeSinceEpoch.from_json(json['responseTime']) if json.get('responseTime', None) is not None else None,
-            cache_storage_cache_name=str(json['cacheStorageCacheName']) if json.get('cacheStorageCacheName', None) is not None else None,
-            protocol=str(json['protocol']) if json.get('protocol', None) is not None else None,
-            alternate_protocol_usage=AlternateProtocolUsage.from_json(json['alternateProtocolUsage']) if json.get('alternateProtocolUsage', None) is not None else None,
-            security_details=SecurityDetails.from_json(json['securityDetails']) if json.get('securityDetails', None) is not None else None,
-            is_ip_protection_used=bool(json['isIpProtectionUsed']) if json.get('isIpProtectionUsed', None) is not None else None,
+            headers_text=str(json.get('headersText', None)) if json.get('headersText', None) is not None else None,
+            request_headers=Headers.from_json(json.get('requestHeaders', None)) if json.get('requestHeaders', None) is not None else None,
+            request_headers_text=str(json.get('requestHeadersText', None)) if json.get('requestHeadersText', None) is not None else None,
+            remote_ip_address=str(json.get('remoteIPAddress', None)) if json.get('remoteIPAddress', None) is not None else None,
+            remote_port=int(json.get('remotePort', None)) if json.get('remotePort', None) is not None else None,
+            from_disk_cache=bool(json.get('fromDiskCache', None)) if json.get('fromDiskCache', None) is not None else None,
+            from_service_worker=bool(json.get('fromServiceWorker', None)) if json.get('fromServiceWorker', None) is not None else None,
+            from_prefetch_cache=bool(json.get('fromPrefetchCache', None)) if json.get('fromPrefetchCache', None) is not None else None,
+            from_early_hints=bool(json.get('fromEarlyHints', None)) if json.get('fromEarlyHints', None) is not None else None,
+            service_worker_router_info=ServiceWorkerRouterInfo.from_json(json.get('serviceWorkerRouterInfo', None)) if json.get('serviceWorkerRouterInfo', None) is not None else None,
+            timing=ResourceTiming.from_json(json.get('timing', None)) if json.get('timing', None) is not None else None,
+            service_worker_response_source=ServiceWorkerResponseSource.from_json(json.get('serviceWorkerResponseSource', None)) if json.get('serviceWorkerResponseSource', None) is not None else None,
+            response_time=TimeSinceEpoch.from_json(json.get('responseTime', None)) if json.get('responseTime', None) is not None else None,
+            cache_storage_cache_name=str(json.get('cacheStorageCacheName', None)) if json.get('cacheStorageCacheName', None) is not None else None,
+            protocol=str(json.get('protocol', None)) if json.get('protocol', None) is not None else None,
+            alternate_protocol_usage=AlternateProtocolUsage.from_json(json.get('alternateProtocolUsage', None)) if json.get('alternateProtocolUsage', None) is not None else None,
+            security_details=SecurityDetails.from_json(json.get('securityDetails', None)) if json.get('securityDetails', None) is not None else None,
         )
 
 
@@ -1162,9 +1145,9 @@ class WebSocketResponse:
             status=int(json['status']),
             status_text=str(json['statusText']),
             headers=Headers.from_json(json['headers']),
-            headers_text=str(json['headersText']) if json.get('headersText', None) is not None else None,
-            request_headers=Headers.from_json(json['requestHeaders']) if json.get('requestHeaders', None) is not None else None,
-            request_headers_text=str(json['requestHeadersText']) if json.get('requestHeadersText', None) is not None else None,
+            headers_text=str(json.get('headersText', None)) if json.get('headersText', None) is not None else None,
+            request_headers=Headers.from_json(json.get('requestHeaders', None)) if json.get('requestHeaders', None) is not None else None,
+            request_headers_text=str(json.get('requestHeadersText', None)) if json.get('requestHeadersText', None) is not None else None,
         )
 
 
@@ -1232,7 +1215,7 @@ class CachedResource:
             url=str(json['url']),
             type_=ResourceType.from_json(json['type']),
             body_size=float(json['bodySize']),
-            response=Response.from_json(json['response']) if json.get('response', None) is not None else None,
+            response=Response.from_json(json.get('response', None)) if json.get('response', None) is not None else None,
         )
 
 
@@ -1281,11 +1264,11 @@ class Initiator:
     def from_json(cls, json: T_JSON_DICT) -> Initiator:
         return cls(
             type_=str(json['type']),
-            stack=runtime.StackTrace.from_json(json['stack']) if json.get('stack', None) is not None else None,
-            url=str(json['url']) if json.get('url', None) is not None else None,
-            line_number=float(json['lineNumber']) if json.get('lineNumber', None) is not None else None,
-            column_number=float(json['columnNumber']) if json.get('columnNumber', None) is not None else None,
-            request_id=RequestId.from_json(json['requestId']) if json.get('requestId', None) is not None else None,
+            stack=runtime.StackTrace.from_json(json.get('stack', None)) if json.get('stack', None) is not None else None,
+            url=str(json.get('url', None)) if json.get('url', None) is not None else None,
+            line_number=float(json.get('lineNumber', None)) if json.get('lineNumber', None) is not None else None,
+            column_number=float(json.get('columnNumber', None)) if json.get('columnNumber', None) is not None else None,
+            request_id=RequestId.from_json(json.get('requestId', None)) if json.get('requestId', None) is not None else None,
         )
 
 
@@ -1348,9 +1331,6 @@ class Cookie:
     #: Cookie Priority
     priority: CookiePriority
 
-    #: True if cookie is SameParty.
-    same_party: bool
-
     #: Cookie source scheme type.
     source_scheme: CookieSourceScheme
 
@@ -1362,7 +1342,7 @@ class Cookie:
     #: Cookie expiration date as the number of seconds since the UNIX epoch.
     #: The value is set to -1 if the expiry date is not set.
     #: The value can be null for values that cannot be represented in
-    #: JSON (±Inf).
+    #: JSON (Â±Inf).
     expires: typing.Optional[float] = None
 
     #: Cookie SameSite type.
@@ -1385,7 +1365,6 @@ class Cookie:
         json['secure'] = self.secure
         json['session'] = self.session
         json['priority'] = self.priority.to_json()
-        json['sameParty'] = self.same_party
         json['sourceScheme'] = self.source_scheme.to_json()
         json['sourcePort'] = self.source_port
         if self.expires is not None:
@@ -1410,13 +1389,12 @@ class Cookie:
             secure=bool(json['secure']),
             session=bool(json['session']),
             priority=CookiePriority.from_json(json['priority']),
-            same_party=bool(json['sameParty']),
-            source_scheme=CookieSourceScheme.from_json(json['sourceScheme']),
-            source_port=int(json['sourcePort']),
-            expires=float(json['expires']) if json.get('expires', None) is not None else None,
-            same_site=CookieSameSite.from_json(json['sameSite']) if json.get('sameSite', None) is not None else None,
-            partition_key=CookiePartitionKey.from_json(json['partitionKey']) if json.get('partitionKey', None) is not None else None,
-            partition_key_opaque=bool(json['partitionKeyOpaque']) if json.get('partitionKeyOpaque', None) is not None else None,
+            source_scheme=CookieSourceScheme.from_json(json.get('sourceScheme', 'Unset')),
+            source_port=int(json.get('sourcePort', -1)),
+            expires=float(json.get('expires', None)) if json.get('expires', None) is not None else None,
+            same_site=CookieSameSite.from_json(json.get('sameSite', None)) if json.get('sameSite', None) is not None else None,
+            partition_key=CookiePartitionKey.from_json(json.get('partitionKey', None)) if json.get('partitionKey', None) is not None else None,
+            partition_key_opaque=bool(json.get('partitionKeyOpaque', None)) if json.get('partitionKeyOpaque', None) is not None else None,
         )
 
 
@@ -1441,8 +1419,6 @@ class SetCookieBlockedReason(enum.Enum):
     SCHEMEFUL_SAME_SITE_STRICT = "SchemefulSameSiteStrict"
     SCHEMEFUL_SAME_SITE_LAX = "SchemefulSameSiteLax"
     SCHEMEFUL_SAME_SITE_UNSPECIFIED_TREATED_AS_LAX = "SchemefulSameSiteUnspecifiedTreatedAsLax"
-    SAME_PARTY_FROM_CROSS_PARTY_CONTEXT = "SamePartyFromCrossPartyContext"
-    SAME_PARTY_CONFLICTS_WITH_OTHER_ATTRIBUTES = "SamePartyConflictsWithOtherAttributes"
     NAME_VALUE_PAIR_EXCEEDS_MAX_SIZE = "NameValuePairExceedsMaxSize"
     DISALLOWED_CHARACTER = "DisallowedCharacter"
     NO_COOKIE_CONTENT = "NoCookieContent"
@@ -1473,7 +1449,6 @@ class CookieBlockedReason(enum.Enum):
     SCHEMEFUL_SAME_SITE_STRICT = "SchemefulSameSiteStrict"
     SCHEMEFUL_SAME_SITE_LAX = "SchemefulSameSiteLax"
     SCHEMEFUL_SAME_SITE_UNSPECIFIED_TREATED_AS_LAX = "SchemefulSameSiteUnspecifiedTreatedAsLax"
-    SAME_PARTY_FROM_CROSS_PARTY_CONTEXT = "SamePartyFromCrossPartyContext"
     NAME_VALUE_PAIR_EXCEEDS_MAX_SIZE = "NameValuePairExceedsMaxSize"
     PORT_MISMATCH = "PortMismatch"
     SCHEME_MISMATCH = "SchemeMismatch"
@@ -1541,7 +1516,7 @@ class BlockedSetCookieWithReason:
         return cls(
             blocked_reasons=[SetCookieBlockedReason.from_json(i) for i in json['blockedReasons']],
             cookie_line=str(json['cookieLine']),
-            cookie=Cookie.from_json(json['cookie']) if json.get('cookie', None) is not None else None,
+            cookie=Cookie.from_json(json.get('cookie', None)) if json.get('cookie', None) is not None else None,
         )
 
 
@@ -1605,7 +1580,7 @@ class AssociatedCookie:
         return cls(
             cookie=Cookie.from_json(json['cookie']),
             blocked_reasons=[CookieBlockedReason.from_json(i) for i in json['blockedReasons']],
-            exemption_reason=CookieExemptionReason.from_json(json['exemptionReason']) if json.get('exemptionReason', None) is not None else None,
+            exemption_reason=CookieExemptionReason.from_json(json.get('exemptionReason', None)) if json.get('exemptionReason', None) is not None else None,
         )
 
 
@@ -1645,9 +1620,6 @@ class CookieParam:
     #: Cookie Priority.
     priority: typing.Optional[CookiePriority] = None
 
-    #: True if cookie is SameParty.
-    same_party: typing.Optional[bool] = None
-
     #: Cookie source scheme type.
     source_scheme: typing.Optional[CookieSourceScheme] = None
 
@@ -1679,8 +1651,6 @@ class CookieParam:
             json['expires'] = self.expires.to_json()
         if self.priority is not None:
             json['priority'] = self.priority.to_json()
-        if self.same_party is not None:
-            json['sameParty'] = self.same_party
         if self.source_scheme is not None:
             json['sourceScheme'] = self.source_scheme.to_json()
         if self.source_port is not None:
@@ -1694,18 +1664,17 @@ class CookieParam:
         return cls(
             name=str(json['name']),
             value=str(json['value']),
-            url=str(json['url']) if json.get('url', None) is not None else None,
-            domain=str(json['domain']) if json.get('domain', None) is not None else None,
-            path=str(json['path']) if json.get('path', None) is not None else None,
-            secure=bool(json['secure']) if json.get('secure', None) is not None else None,
-            http_only=bool(json['httpOnly']) if json.get('httpOnly', None) is not None else None,
-            same_site=CookieSameSite.from_json(json['sameSite']) if json.get('sameSite', None) is not None else None,
-            expires=TimeSinceEpoch.from_json(json['expires']) if json.get('expires', None) is not None else None,
-            priority=CookiePriority.from_json(json['priority']) if json.get('priority', None) is not None else None,
-            same_party=bool(json['sameParty']) if json.get('sameParty', None) is not None else None,
-            source_scheme=CookieSourceScheme.from_json(json['sourceScheme']) if json.get('sourceScheme', None) is not None else None,
-            source_port=int(json['sourcePort']) if json.get('sourcePort', None) is not None else None,
-            partition_key=CookiePartitionKey.from_json(json['partitionKey']) if json.get('partitionKey', None) is not None else None,
+            url=str(json.get('url', None)) if json.get('url', None) is not None else None,
+            domain=str(json.get('domain', None)) if json.get('domain', None) is not None else None,
+            path=str(json.get('path', None)) if json.get('path', None) is not None else None,
+            secure=bool(json.get('secure', None)) if json.get('secure', None) is not None else None,
+            http_only=bool(json.get('httpOnly', None)) if json.get('httpOnly', None) is not None else None,
+            same_site=CookieSameSite.from_json(json.get('sameSite', None)) if json.get('sameSite', None) is not None else None,
+            expires=TimeSinceEpoch.from_json(json.get('expires', None)) if json.get('expires', None) is not None else None,
+            priority=CookiePriority.from_json(json.get('priority', None)) if json.get('priority', None) is not None else None,
+            source_scheme=CookieSourceScheme.from_json(json.get('sourceScheme', None)) if json.get('sourceScheme', None) is not None else None,
+            source_port=int(json.get('sourcePort', None)) if json.get('sourcePort', None) is not None else None,
+            partition_key=CookiePartitionKey.from_json(json.get('partitionKey', None)) if json.get('partitionKey', None) is not None else None,
         )
 
 
@@ -1741,7 +1710,7 @@ class AuthChallenge:
             origin=str(json['origin']),
             scheme=str(json['scheme']),
             realm=str(json['realm']),
-            source=str(json['source']) if json.get('source', None) is not None else None,
+            source=str(json.get('source', None)) if json.get('source', None) is not None else None,
         )
 
 
@@ -1776,8 +1745,8 @@ class AuthChallengeResponse:
     def from_json(cls, json: T_JSON_DICT) -> AuthChallengeResponse:
         return cls(
             response=str(json['response']),
-            username=str(json['username']) if json.get('username', None) is not None else None,
-            password=str(json['password']) if json.get('password', None) is not None else None,
+            username=str(json.get('username', None)) if json.get('username', None) is not None else None,
+            password=str(json.get('password', None)) if json.get('password', None) is not None else None,
         )
 
 
@@ -1825,9 +1794,9 @@ class RequestPattern:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> RequestPattern:
         return cls(
-            url_pattern=str(json['urlPattern']) if json.get('urlPattern', None) is not None else None,
-            resource_type=ResourceType.from_json(json['resourceType']) if json.get('resourceType', None) is not None else None,
-            interception_stage=InterceptionStage.from_json(json['interceptionStage']) if json.get('interceptionStage', None) is not None else None,
+            url_pattern=str(json.get('urlPattern', None)) if json.get('urlPattern', None) is not None else None,
+            resource_type=ResourceType.from_json(json.get('resourceType', None)) if json.get('resourceType', None) is not None else None,
+            interception_stage=InterceptionStage.from_json(json.get('interceptionStage', None)) if json.get('interceptionStage', None) is not None else None,
         )
 
 
@@ -1889,9 +1858,9 @@ class SignedExchangeSignature:
             validity_url=str(json['validityUrl']),
             date=int(json['date']),
             expires=int(json['expires']),
-            cert_url=str(json['certUrl']) if json.get('certUrl', None) is not None else None,
-            cert_sha256=str(json['certSha256']) if json.get('certSha256', None) is not None else None,
-            certificates=[str(i) for i in json['certificates']] if json.get('certificates', None) is not None else None,
+            cert_url=str(json.get('certUrl', None)) if json.get('certUrl', None) is not None else None,
+            cert_sha256=str(json.get('certSha256', None)) if json.get('certSha256', None) is not None else None,
+            certificates=[str(i) for i in json.get('certificates', None)] if json.get('certificates', None) is not None else None,
         )
 
 
@@ -1982,8 +1951,8 @@ class SignedExchangeError:
     def from_json(cls, json: T_JSON_DICT) -> SignedExchangeError:
         return cls(
             message=str(json['message']),
-            signature_index=int(json['signatureIndex']) if json.get('signatureIndex', None) is not None else None,
-            error_field=SignedExchangeErrorField.from_json(json['errorField']) if json.get('errorField', None) is not None else None,
+            signature_index=int(json.get('signatureIndex', None)) if json.get('signatureIndex', None) is not None else None,
+            error_field=SignedExchangeErrorField.from_json(json.get('errorField', None)) if json.get('errorField', None) is not None else None,
         )
 
 
@@ -2025,9 +1994,9 @@ class SignedExchangeInfo:
         return cls(
             outer_response=Response.from_json(json['outerResponse']),
             has_extra_info=bool(json['hasExtraInfo']),
-            header=SignedExchangeHeader.from_json(json['header']) if json.get('header', None) is not None else None,
-            security_details=SecurityDetails.from_json(json['securityDetails']) if json.get('securityDetails', None) is not None else None,
-            errors=[SignedExchangeError.from_json(i) for i in json['errors']] if json.get('errors', None) is not None else None,
+            header=SignedExchangeHeader.from_json(json.get('header', None)) if json.get('header', None) is not None else None,
+            security_details=SecurityDetails.from_json(json.get('securityDetails', None)) if json.get('securityDetails', None) is not None else None,
+            errors=[SignedExchangeError.from_json(i) for i in json.get('errors', None)] if json.get('errors', None) is not None else None,
         )
 
 
@@ -2076,6 +2045,9 @@ class NetworkConditions:
     #: WebRTC packetReordering feature.
     packet_reordering: typing.Optional[bool] = None
 
+    #: True to emulate internet disconnection.
+    offline: typing.Optional[bool] = None
+
     def to_json(self) -> T_JSON_DICT:
         json: T_JSON_DICT = dict()
         json['urlPattern'] = self.url_pattern
@@ -2090,6 +2062,8 @@ class NetworkConditions:
             json['packetQueueLength'] = self.packet_queue_length
         if self.packet_reordering is not None:
             json['packetReordering'] = self.packet_reordering
+        if self.offline is not None:
+            json['offline'] = self.offline
         return json
 
     @classmethod
@@ -2099,10 +2073,11 @@ class NetworkConditions:
             latency=float(json['latency']),
             download_throughput=float(json['downloadThroughput']),
             upload_throughput=float(json['uploadThroughput']),
-            connection_type=ConnectionType.from_json(json['connectionType']) if json.get('connectionType', None) is not None else None,
-            packet_loss=float(json['packetLoss']) if json.get('packetLoss', None) is not None else None,
-            packet_queue_length=int(json['packetQueueLength']) if json.get('packetQueueLength', None) is not None else None,
-            packet_reordering=bool(json['packetReordering']) if json.get('packetReordering', None) is not None else None,
+            connection_type=ConnectionType.from_json(json.get('connectionType', None)) if json.get('connectionType', None) is not None else None,
+            packet_loss=float(json.get('packetLoss', None)) if json.get('packetLoss', None) is not None else None,
+            packet_queue_length=int(json.get('packetQueueLength', None)) if json.get('packetQueueLength', None) is not None else None,
+            packet_reordering=bool(json.get('packetReordering', None)) if json.get('packetReordering', None) is not None else None,
+            offline=bool(json.get('offline', None)) if json.get('offline', None) is not None else None,
         )
 
 
@@ -2175,10 +2150,10 @@ class DirectTCPSocketOptions:
     def from_json(cls, json: T_JSON_DICT) -> DirectTCPSocketOptions:
         return cls(
             no_delay=bool(json['noDelay']),
-            keep_alive_delay=float(json['keepAliveDelay']) if json.get('keepAliveDelay', None) is not None else None,
-            send_buffer_size=float(json['sendBufferSize']) if json.get('sendBufferSize', None) is not None else None,
-            receive_buffer_size=float(json['receiveBufferSize']) if json.get('receiveBufferSize', None) is not None else None,
-            dns_query_type=DirectSocketDnsQueryType.from_json(json['dnsQueryType']) if json.get('dnsQueryType', None) is not None else None,
+            keep_alive_delay=float(json.get('keepAliveDelay', None)) if json.get('keepAliveDelay', None) is not None else None,
+            send_buffer_size=float(json.get('sendBufferSize', None)) if json.get('sendBufferSize', None) is not None else None,
+            receive_buffer_size=float(json.get('receiveBufferSize', None)) if json.get('receiveBufferSize', None) is not None else None,
+            dns_query_type=DirectSocketDnsQueryType.from_json(json.get('dnsQueryType', None)) if json.get('dnsQueryType', None) is not None else None,
         )
 
 
@@ -2202,6 +2177,13 @@ class DirectUDPSocketOptions:
     #: Expected to be unsigned integer.
     receive_buffer_size: typing.Optional[float] = None
 
+    multicast_loopback: typing.Optional[bool] = None
+
+    #: Unsigned int 8.
+    multicast_time_to_live: typing.Optional[int] = None
+
+    multicast_allow_address_sharing: typing.Optional[bool] = None
+
     def to_json(self) -> T_JSON_DICT:
         json: T_JSON_DICT = dict()
         if self.remote_addr is not None:
@@ -2218,18 +2200,27 @@ class DirectUDPSocketOptions:
             json['sendBufferSize'] = self.send_buffer_size
         if self.receive_buffer_size is not None:
             json['receiveBufferSize'] = self.receive_buffer_size
+        if self.multicast_loopback is not None:
+            json['multicastLoopback'] = self.multicast_loopback
+        if self.multicast_time_to_live is not None:
+            json['multicastTimeToLive'] = self.multicast_time_to_live
+        if self.multicast_allow_address_sharing is not None:
+            json['multicastAllowAddressSharing'] = self.multicast_allow_address_sharing
         return json
 
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> DirectUDPSocketOptions:
         return cls(
-            remote_addr=str(json['remoteAddr']) if json.get('remoteAddr', None) is not None else None,
-            remote_port=int(json['remotePort']) if json.get('remotePort', None) is not None else None,
-            local_addr=str(json['localAddr']) if json.get('localAddr', None) is not None else None,
-            local_port=int(json['localPort']) if json.get('localPort', None) is not None else None,
-            dns_query_type=DirectSocketDnsQueryType.from_json(json['dnsQueryType']) if json.get('dnsQueryType', None) is not None else None,
-            send_buffer_size=float(json['sendBufferSize']) if json.get('sendBufferSize', None) is not None else None,
-            receive_buffer_size=float(json['receiveBufferSize']) if json.get('receiveBufferSize', None) is not None else None,
+            remote_addr=str(json.get('remoteAddr', None)) if json.get('remoteAddr', None) is not None else None,
+            remote_port=int(json.get('remotePort', None)) if json.get('remotePort', None) is not None else None,
+            local_addr=str(json.get('localAddr', None)) if json.get('localAddr', None) is not None else None,
+            local_port=int(json.get('localPort', None)) if json.get('localPort', None) is not None else None,
+            dns_query_type=DirectSocketDnsQueryType.from_json(json.get('dnsQueryType', None)) if json.get('dnsQueryType', None) is not None else None,
+            send_buffer_size=float(json.get('sendBufferSize', None)) if json.get('sendBufferSize', None) is not None else None,
+            receive_buffer_size=float(json.get('receiveBufferSize', None)) if json.get('receiveBufferSize', None) is not None else None,
+            multicast_loopback=bool(json.get('multicastLoopback', None)) if json.get('multicastLoopback', None) is not None else None,
+            multicast_time_to_live=int(json.get('multicastTimeToLive', None)) if json.get('multicastTimeToLive', None) is not None else None,
+            multicast_allow_address_sharing=bool(json.get('multicastAllowAddressSharing', None)) if json.get('multicastAllowAddressSharing', None) is not None else None,
         )
 
 
@@ -2257,17 +2248,15 @@ class DirectUDPMessage:
     def from_json(cls, json: T_JSON_DICT) -> DirectUDPMessage:
         return cls(
             data=str(json['data']),
-            remote_addr=str(json['remoteAddr']) if json.get('remoteAddr', None) is not None else None,
-            remote_port=int(json['remotePort']) if json.get('remotePort', None) is not None else None,
+            remote_addr=str(json.get('remoteAddr', None)) if json.get('remoteAddr', None) is not None else None,
+            remote_port=int(json.get('remotePort', None)) if json.get('remotePort', None) is not None else None,
         )
 
 
-class PrivateNetworkRequestPolicy(enum.Enum):
+class LocalNetworkAccessRequestPolicy(enum.Enum):
     ALLOW = "Allow"
     BLOCK_FROM_INSECURE_TO_MORE_PRIVATE = "BlockFromInsecureToMorePrivate"
     WARN_FROM_INSECURE_TO_MORE_PRIVATE = "WarnFromInsecureToMorePrivate"
-    PREFLIGHT_BLOCK = "PreflightBlock"
-    PREFLIGHT_WARN = "PreflightWarn"
     PERMISSION_BLOCK = "PermissionBlock"
     PERMISSION_WARN = "PermissionWarn"
 
@@ -2275,7 +2264,7 @@ class PrivateNetworkRequestPolicy(enum.Enum):
         return self.value
 
     @classmethod
-    def from_json(cls, json: str) -> PrivateNetworkRequestPolicy:
+    def from_json(cls, json: str) -> LocalNetworkAccessRequestPolicy:
         return cls(json)
 
 
@@ -2318,13 +2307,13 @@ class ClientSecurityState:
 
     initiator_ip_address_space: IPAddressSpace
 
-    private_network_request_policy: PrivateNetworkRequestPolicy
+    local_network_access_request_policy: LocalNetworkAccessRequestPolicy
 
     def to_json(self) -> T_JSON_DICT:
         json: T_JSON_DICT = dict()
         json['initiatorIsSecureContext'] = self.initiator_is_secure_context
         json['initiatorIPAddressSpace'] = self.initiator_ip_address_space.to_json()
-        json['privateNetworkRequestPolicy'] = self.private_network_request_policy.to_json()
+        json['localNetworkAccessRequestPolicy'] = self.local_network_access_request_policy.to_json()
         return json
 
     @classmethod
@@ -2332,7 +2321,103 @@ class ClientSecurityState:
         return cls(
             initiator_is_secure_context=bool(json['initiatorIsSecureContext']),
             initiator_ip_address_space=IPAddressSpace.from_json(json['initiatorIPAddressSpace']),
-            private_network_request_policy=PrivateNetworkRequestPolicy.from_json(json['privateNetworkRequestPolicy']),
+            local_network_access_request_policy=LocalNetworkAccessRequestPolicy.from_json(json['localNetworkAccessRequestPolicy']),
+        )
+
+
+@dataclass
+class AdScriptIdentifier:
+    '''
+    Identifies the script on the stack that caused a resource or element to be
+    labeled as an ad. For resources, this indicates the context that triggered
+    the fetch. For elements, this indicates the context that caused the element
+    to be appended to the DOM.
+    '''
+    #: The script's V8 identifier.
+    script_id: runtime.ScriptId
+
+    #: V8's debugging ID for the v8::Context.
+    debugger_id: runtime.UniqueDebuggerId
+
+    #: The script's url (or generated name based on id if inline script).
+    name: str
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['scriptId'] = self.script_id.to_json()
+        json['debuggerId'] = self.debugger_id.to_json()
+        json['name'] = self.name
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> AdScriptIdentifier:
+        return cls(
+            script_id=runtime.ScriptId.from_json(json['scriptId']),
+            debugger_id=runtime.UniqueDebuggerId.from_json(json['debuggerId']),
+            name=str(json['name']),
+        )
+
+
+@dataclass
+class AdAncestry:
+    '''
+    Encapsulates the script ancestry and the root script filter list rule that
+    caused the resource or element to be labeled as an ad.
+    '''
+    #: A chain of ``AdScriptIdentifier``'s representing the ancestry of an ad
+    #: script that led to the creation of a resource or element. The chain is
+    #: ordered from the script itself (lowest level) up to its root ancestor
+    #: that was flagged by a filter list.
+    ancestry_chain: typing.List[AdScriptIdentifier]
+
+    #: The filter list rule that caused the root (last) script in
+    #: ``ancestryChain`` to be tagged as an ad.
+    root_script_filterlist_rule: typing.Optional[str] = None
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['ancestryChain'] = [i.to_json() for i in self.ancestry_chain]
+        if self.root_script_filterlist_rule is not None:
+            json['rootScriptFilterlistRule'] = self.root_script_filterlist_rule
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> AdAncestry:
+        return cls(
+            ancestry_chain=[AdScriptIdentifier.from_json(i) for i in json['ancestryChain']],
+            root_script_filterlist_rule=str(json.get('rootScriptFilterlistRule', None)) if json.get('rootScriptFilterlistRule', None) is not None else None,
+        )
+
+
+@dataclass
+class AdProvenance:
+    '''
+    Represents the provenance of an ad resource or element. Only one of
+    ``filterlistRule`` or ``adScriptAncestry`` can be set. If ``filterlistRule``
+    is provided, the resource URL directly matches a filter list rule. If
+    ``adScriptAncestry`` is provided, an ad script initiated the resource fetch or
+    appended the element to the DOM. If neither is provided, the entity is
+    known to be an ad, but provenance tracking information is unavailable.
+    '''
+    #: The filterlist rule that matched, if any.
+    filterlist_rule: typing.Optional[str] = None
+
+    #: The script ancestry that created the ad, if any.
+    ad_script_ancestry: typing.Optional[AdAncestry] = None
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        if self.filterlist_rule is not None:
+            json['filterlistRule'] = self.filterlist_rule
+        if self.ad_script_ancestry is not None:
+            json['adScriptAncestry'] = self.ad_script_ancestry.to_json()
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> AdProvenance:
+        return cls(
+            filterlist_rule=str(json.get('filterlistRule', None)) if json.get('filterlistRule', None) is not None else None,
+            ad_script_ancestry=AdAncestry.from_json(json.get('adScriptAncestry', None)) if json.get('adScriptAncestry', None) is not None else None,
         )
 
 
@@ -2378,8 +2463,8 @@ class CrossOriginOpenerPolicyStatus:
         return cls(
             value=CrossOriginOpenerPolicyValue.from_json(json['value']),
             report_only_value=CrossOriginOpenerPolicyValue.from_json(json['reportOnlyValue']),
-            reporting_endpoint=str(json['reportingEndpoint']) if json.get('reportingEndpoint', None) is not None else None,
-            report_only_reporting_endpoint=str(json['reportOnlyReportingEndpoint']) if json.get('reportOnlyReportingEndpoint', None) is not None else None,
+            reporting_endpoint=str(json.get('reportingEndpoint', None)) if json.get('reportingEndpoint', None) is not None else None,
+            report_only_reporting_endpoint=str(json.get('reportOnlyReportingEndpoint', None)) if json.get('reportOnlyReportingEndpoint', None) is not None else None,
         )
 
 
@@ -2421,8 +2506,8 @@ class CrossOriginEmbedderPolicyStatus:
         return cls(
             value=CrossOriginEmbedderPolicyValue.from_json(json['value']),
             report_only_value=CrossOriginEmbedderPolicyValue.from_json(json['reportOnlyValue']),
-            reporting_endpoint=str(json['reportingEndpoint']) if json.get('reportingEndpoint', None) is not None else None,
-            report_only_reporting_endpoint=str(json['reportOnlyReportingEndpoint']) if json.get('reportOnlyReportingEndpoint', None) is not None else None,
+            reporting_endpoint=str(json.get('reportingEndpoint', None)) if json.get('reportingEndpoint', None) is not None else None,
+            report_only_reporting_endpoint=str(json.get('reportOnlyReportingEndpoint', None)) if json.get('reportOnlyReportingEndpoint', None) is not None else None,
         )
 
 
@@ -2483,9 +2568,9 @@ class SecurityIsolationStatus:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> SecurityIsolationStatus:
         return cls(
-            coop=CrossOriginOpenerPolicyStatus.from_json(json['coop']) if json.get('coop', None) is not None else None,
-            coep=CrossOriginEmbedderPolicyStatus.from_json(json['coep']) if json.get('coep', None) is not None else None,
-            csp=[ContentSecurityPolicyStatus.from_json(i) for i in json['csp']] if json.get('csp', None) is not None else None,
+            coop=CrossOriginOpenerPolicyStatus.from_json(json.get('coop', None)) if json.get('coop', None) is not None else None,
+            coep=CrossOriginEmbedderPolicyStatus.from_json(json.get('coep', None)) if json.get('coep', None) is not None else None,
+            csp=[ContentSecurityPolicyStatus.from_json(i) for i in json.get('csp', None)] if json.get('csp', None) is not None else None,
         )
 
 
@@ -2598,6 +2683,475 @@ class ReportingApiEndpoint:
 
 
 @dataclass
+class DeviceBoundSessionKey:
+    '''
+    Unique identifier for a device bound session.
+    '''
+    #: The site the session is set up for.
+    site: str
+
+    #: The id of the session.
+    id_: str
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['site'] = self.site
+        json['id'] = self.id_
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionKey:
+        return cls(
+            site=str(json['site']),
+            id_=str(json['id']),
+        )
+
+
+@dataclass
+class DeviceBoundSessionWithUsage:
+    '''
+    How a device bound session was used during a request.
+    '''
+    #: The key for the session.
+    session_key: DeviceBoundSessionKey
+
+    #: How the session was used (or not used).
+    usage: str
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['sessionKey'] = self.session_key.to_json()
+        json['usage'] = self.usage
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionWithUsage:
+        return cls(
+            session_key=DeviceBoundSessionKey.from_json(json['sessionKey']),
+            usage=str(json['usage']),
+        )
+
+
+@dataclass
+class DeviceBoundSessionCookieCraving:
+    '''
+    A device bound session's cookie craving.
+    '''
+    #: The name of the craving.
+    name: str
+
+    #: The domain of the craving.
+    domain: str
+
+    #: The path of the craving.
+    path: str
+
+    #: The ``Secure`` attribute of the craving attributes.
+    secure: bool
+
+    #: The ``HttpOnly`` attribute of the craving attributes.
+    http_only: bool
+
+    #: The ``SameSite`` attribute of the craving attributes.
+    same_site: typing.Optional[CookieSameSite] = None
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['name'] = self.name
+        json['domain'] = self.domain
+        json['path'] = self.path
+        json['secure'] = self.secure
+        json['httpOnly'] = self.http_only
+        if self.same_site is not None:
+            json['sameSite'] = self.same_site.to_json()
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionCookieCraving:
+        return cls(
+            name=str(json['name']),
+            domain=str(json['domain']),
+            path=str(json['path']),
+            secure=bool(json['secure']),
+            http_only=bool(json['httpOnly']),
+            same_site=CookieSameSite.from_json(json.get('sameSite', None)) if json.get('sameSite', None) is not None else None,
+        )
+
+
+@dataclass
+class DeviceBoundSessionUrlRule:
+    '''
+    A device bound session's inclusion URL rule.
+    '''
+    #: See comments on ``net::device_bound_sessions::SessionInclusionRules::UrlRule::rule_type``.
+    rule_type: str
+
+    #: See comments on ``net::device_bound_sessions::SessionInclusionRules::UrlRule::host_pattern``.
+    host_pattern: str
+
+    #: See comments on ``net::device_bound_sessions::SessionInclusionRules::UrlRule::path_prefix``.
+    path_prefix: str
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['ruleType'] = self.rule_type
+        json['hostPattern'] = self.host_pattern
+        json['pathPrefix'] = self.path_prefix
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionUrlRule:
+        return cls(
+            rule_type=str(json['ruleType']),
+            host_pattern=str(json['hostPattern']),
+            path_prefix=str(json['pathPrefix']),
+        )
+
+
+@dataclass
+class DeviceBoundSessionInclusionRules:
+    '''
+    A device bound session's inclusion rules.
+    '''
+    #: See comments on ``net::device_bound_sessions::SessionInclusionRules::origin_``.
+    origin: str
+
+    #: Whether the whole site is included. See comments on
+    #: ``net::device_bound_sessions::SessionInclusionRules::include_site_`` for more
+    #: details; this boolean is true if that value is populated.
+    include_site: bool
+
+    #: See comments on ``net::device_bound_sessions::SessionInclusionRules::url_rules_``.
+    url_rules: typing.List[DeviceBoundSessionUrlRule]
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['origin'] = self.origin
+        json['includeSite'] = self.include_site
+        json['urlRules'] = [i.to_json() for i in self.url_rules]
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionInclusionRules:
+        return cls(
+            origin=str(json['origin']),
+            include_site=bool(json['includeSite']),
+            url_rules=[DeviceBoundSessionUrlRule.from_json(i) for i in json['urlRules']],
+        )
+
+
+@dataclass
+class DeviceBoundSession:
+    '''
+    A device bound session.
+    '''
+    #: The site and session ID of the session.
+    key: DeviceBoundSessionKey
+
+    #: See comments on ``net::device_bound_sessions::Session::refresh_url_``.
+    refresh_url: str
+
+    #: See comments on ``net::device_bound_sessions::Session::inclusion_rules_``.
+    inclusion_rules: DeviceBoundSessionInclusionRules
+
+    #: See comments on ``net::device_bound_sessions::Session::cookie_cravings_``.
+    cookie_cravings: typing.List[DeviceBoundSessionCookieCraving]
+
+    #: See comments on ``net::device_bound_sessions::Session::expiry_date_``.
+    expiry_date: TimeSinceEpoch
+
+    #: See comments on ``net::device_bound_sessions::Session::allowed_refresh_initiators_``.
+    allowed_refresh_initiators: typing.List[str]
+
+    #: See comments on ``net::device_bound_sessions::Session::cached_challenge__``.
+    cached_challenge: typing.Optional[str] = None
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['key'] = self.key.to_json()
+        json['refreshUrl'] = self.refresh_url
+        json['inclusionRules'] = self.inclusion_rules.to_json()
+        json['cookieCravings'] = [i.to_json() for i in self.cookie_cravings]
+        json['expiryDate'] = self.expiry_date.to_json()
+        json['allowedRefreshInitiators'] = [i for i in self.allowed_refresh_initiators]
+        if self.cached_challenge is not None:
+            json['cachedChallenge'] = self.cached_challenge
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSession:
+        return cls(
+            key=DeviceBoundSessionKey.from_json(json['key']),
+            refresh_url=str(json['refreshUrl']),
+            inclusion_rules=DeviceBoundSessionInclusionRules.from_json(json['inclusionRules']),
+            cookie_cravings=[DeviceBoundSessionCookieCraving.from_json(i) for i in json['cookieCravings']],
+            expiry_date=TimeSinceEpoch.from_json(json['expiryDate']),
+            allowed_refresh_initiators=[str(i) for i in json['allowedRefreshInitiators']],
+            cached_challenge=str(json.get('cachedChallenge', None)) if json.get('cachedChallenge', None) is not None else None,
+        )
+
+
+class DeviceBoundSessionEventId(str):
+    '''
+    A unique identifier for a device bound session event.
+    '''
+    def to_json(self) -> str:
+        return self
+
+    @classmethod
+    def from_json(cls, json: str) -> DeviceBoundSessionEventId:
+        return cls(json)
+
+    def __repr__(self):
+        return 'DeviceBoundSessionEventId({})'.format(super().__repr__())
+
+
+class DeviceBoundSessionFetchResult(enum.Enum):
+    '''
+    A fetch result for a device bound session creation or refresh.
+    '''
+    SUCCESS = "Success"
+    KEY_ERROR = "KeyError"
+    SIGNING_ERROR = "SigningError"
+    SERVER_REQUESTED_TERMINATION = "ServerRequestedTermination"
+    INVALID_SESSION_ID = "InvalidSessionId"
+    INVALID_CHALLENGE = "InvalidChallenge"
+    TOO_MANY_CHALLENGES = "TooManyChallenges"
+    INVALID_FETCHER_URL = "InvalidFetcherUrl"
+    INVALID_REFRESH_URL = "InvalidRefreshUrl"
+    TRANSIENT_HTTP_ERROR = "TransientHttpError"
+    SCOPE_ORIGIN_SAME_SITE_MISMATCH = "ScopeOriginSameSiteMismatch"
+    REFRESH_URL_SAME_SITE_MISMATCH = "RefreshUrlSameSiteMismatch"
+    MISMATCHED_SESSION_ID = "MismatchedSessionId"
+    MISSING_SCOPE = "MissingScope"
+    NO_CREDENTIALS = "NoCredentials"
+    SUBDOMAIN_REGISTRATION_WELL_KNOWN_UNAVAILABLE = "SubdomainRegistrationWellKnownUnavailable"
+    SUBDOMAIN_REGISTRATION_UNAUTHORIZED = "SubdomainRegistrationUnauthorized"
+    SUBDOMAIN_REGISTRATION_WELL_KNOWN_MALFORMED = "SubdomainRegistrationWellKnownMalformed"
+    SESSION_PROVIDER_WELL_KNOWN_UNAVAILABLE = "SessionProviderWellKnownUnavailable"
+    RELYING_PARTY_WELL_KNOWN_UNAVAILABLE = "RelyingPartyWellKnownUnavailable"
+    FEDERATED_KEY_THUMBPRINT_MISMATCH = "FederatedKeyThumbprintMismatch"
+    INVALID_FEDERATED_SESSION_URL = "InvalidFederatedSessionUrl"
+    INVALID_FEDERATED_KEY = "InvalidFederatedKey"
+    TOO_MANY_RELYING_ORIGIN_LABELS = "TooManyRelyingOriginLabels"
+    BOUND_COOKIE_SET_FORBIDDEN = "BoundCookieSetForbidden"
+    NET_ERROR = "NetError"
+    PROXY_ERROR = "ProxyError"
+    EMPTY_SESSION_CONFIG = "EmptySessionConfig"
+    INVALID_CREDENTIALS_CONFIG = "InvalidCredentialsConfig"
+    INVALID_CREDENTIALS_TYPE = "InvalidCredentialsType"
+    INVALID_CREDENTIALS_EMPTY_NAME = "InvalidCredentialsEmptyName"
+    INVALID_CREDENTIALS_COOKIE = "InvalidCredentialsCookie"
+    PERSISTENT_HTTP_ERROR = "PersistentHttpError"
+    REGISTRATION_ATTEMPTED_CHALLENGE = "RegistrationAttemptedChallenge"
+    INVALID_SCOPE_ORIGIN = "InvalidScopeOrigin"
+    SCOPE_ORIGIN_CONTAINS_PATH = "ScopeOriginContainsPath"
+    REFRESH_INITIATOR_NOT_STRING = "RefreshInitiatorNotString"
+    REFRESH_INITIATOR_INVALID_HOST_PATTERN = "RefreshInitiatorInvalidHostPattern"
+    INVALID_SCOPE_SPECIFICATION = "InvalidScopeSpecification"
+    MISSING_SCOPE_SPECIFICATION_TYPE = "MissingScopeSpecificationType"
+    EMPTY_SCOPE_SPECIFICATION_DOMAIN = "EmptyScopeSpecificationDomain"
+    EMPTY_SCOPE_SPECIFICATION_PATH = "EmptyScopeSpecificationPath"
+    INVALID_SCOPE_SPECIFICATION_TYPE = "InvalidScopeSpecificationType"
+    INVALID_SCOPE_INCLUDE_SITE = "InvalidScopeIncludeSite"
+    MISSING_SCOPE_INCLUDE_SITE = "MissingScopeIncludeSite"
+    FEDERATED_NOT_AUTHORIZED_BY_PROVIDER = "FederatedNotAuthorizedByProvider"
+    FEDERATED_NOT_AUTHORIZED_BY_RELYING_PARTY = "FederatedNotAuthorizedByRelyingParty"
+    SESSION_PROVIDER_WELL_KNOWN_MALFORMED = "SessionProviderWellKnownMalformed"
+    SESSION_PROVIDER_WELL_KNOWN_HAS_PROVIDER_ORIGIN = "SessionProviderWellKnownHasProviderOrigin"
+    RELYING_PARTY_WELL_KNOWN_MALFORMED = "RelyingPartyWellKnownMalformed"
+    RELYING_PARTY_WELL_KNOWN_HAS_RELYING_ORIGINS = "RelyingPartyWellKnownHasRelyingOrigins"
+    INVALID_FEDERATED_SESSION_PROVIDER_SESSION_MISSING = "InvalidFederatedSessionProviderSessionMissing"
+    INVALID_FEDERATED_SESSION_WRONG_PROVIDER_ORIGIN = "InvalidFederatedSessionWrongProviderOrigin"
+    INVALID_CREDENTIALS_COOKIE_CREATION_TIME = "InvalidCredentialsCookieCreationTime"
+    INVALID_CREDENTIALS_COOKIE_NAME = "InvalidCredentialsCookieName"
+    INVALID_CREDENTIALS_COOKIE_PARSING = "InvalidCredentialsCookieParsing"
+    INVALID_CREDENTIALS_COOKIE_UNPERMITTED_ATTRIBUTE = "InvalidCredentialsCookieUnpermittedAttribute"
+    INVALID_CREDENTIALS_COOKIE_INVALID_DOMAIN = "InvalidCredentialsCookieInvalidDomain"
+    INVALID_CREDENTIALS_COOKIE_PREFIX = "InvalidCredentialsCookiePrefix"
+    INVALID_SCOPE_RULE_PATH = "InvalidScopeRulePath"
+    INVALID_SCOPE_RULE_HOST_PATTERN = "InvalidScopeRuleHostPattern"
+    SCOPE_RULE_ORIGIN_SCOPED_HOST_PATTERN_MISMATCH = "ScopeRuleOriginScopedHostPatternMismatch"
+    SCOPE_RULE_SITE_SCOPED_HOST_PATTERN_MISMATCH = "ScopeRuleSiteScopedHostPatternMismatch"
+    SIGNING_QUOTA_EXCEEDED = "SigningQuotaExceeded"
+    INVALID_CONFIG_JSON = "InvalidConfigJson"
+    INVALID_FEDERATED_SESSION_PROVIDER_FAILED_TO_RESTORE_KEY = "InvalidFederatedSessionProviderFailedToRestoreKey"
+    FAILED_TO_UNWRAP_KEY = "FailedToUnwrapKey"
+    SESSION_DELETED_DURING_REFRESH = "SessionDeletedDuringRefresh"
+
+    def to_json(self) -> str:
+        return self.value
+
+    @classmethod
+    def from_json(cls, json: str) -> DeviceBoundSessionFetchResult:
+        return cls(json)
+
+
+@dataclass
+class DeviceBoundSessionFailedRequest:
+    '''
+    Details about a failed device bound session network request.
+    '''
+    #: The failed request URL.
+    request_url: str
+
+    #: The net error of the response if it was not OK.
+    net_error: typing.Optional[str] = None
+
+    #: The response code if the net error was OK and the response code was not
+    #: 200.
+    response_error: typing.Optional[int] = None
+
+    #: The body of the response if the net error was OK, the response code was
+    #: not 200, and the response body was not empty.
+    response_error_body: typing.Optional[str] = None
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['requestUrl'] = self.request_url
+        if self.net_error is not None:
+            json['netError'] = self.net_error
+        if self.response_error is not None:
+            json['responseError'] = self.response_error
+        if self.response_error_body is not None:
+            json['responseErrorBody'] = self.response_error_body
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionFailedRequest:
+        return cls(
+            request_url=str(json['requestUrl']),
+            net_error=str(json.get('netError', None)) if json.get('netError', None) is not None else None,
+            response_error=int(json.get('responseError', None)) if json.get('responseError', None) is not None else None,
+            response_error_body=str(json.get('responseErrorBody', None)) if json.get('responseErrorBody', None) is not None else None,
+        )
+
+
+@dataclass
+class CreationEventDetails:
+    '''
+    Session event details specific to creation.
+    '''
+    #: The result of the fetch attempt.
+    fetch_result: DeviceBoundSessionFetchResult
+
+    #: The session if there was a newly created session. This is populated for
+    #: all successful creation events.
+    new_session: typing.Optional[DeviceBoundSession] = None
+
+    #: Details about a failed device bound session network request if there was
+    #: one.
+    failed_request: typing.Optional[DeviceBoundSessionFailedRequest] = None
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['fetchResult'] = self.fetch_result.to_json()
+        if self.new_session is not None:
+            json['newSession'] = self.new_session.to_json()
+        if self.failed_request is not None:
+            json['failedRequest'] = self.failed_request.to_json()
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> CreationEventDetails:
+        return cls(
+            fetch_result=DeviceBoundSessionFetchResult.from_json(json['fetchResult']),
+            new_session=DeviceBoundSession.from_json(json.get('newSession', None)) if json.get('newSession', None) is not None else None,
+            failed_request=DeviceBoundSessionFailedRequest.from_json(json.get('failedRequest', None)) if json.get('failedRequest', None) is not None else None,
+        )
+
+
+@dataclass
+class RefreshEventDetails:
+    '''
+    Session event details specific to refresh.
+    '''
+    #: The result of a refresh.
+    refresh_result: str
+
+    #: See comments on ``net::device_bound_sessions::RefreshEventResult::was_fully_proactive_refresh``.
+    was_fully_proactive_refresh: bool
+
+    #: If there was a fetch attempt, the result of that.
+    fetch_result: typing.Optional[DeviceBoundSessionFetchResult] = None
+
+    #: The session display if there was a newly created session. This is populated
+    #: for any refresh event that modifies the session config.
+    new_session: typing.Optional[DeviceBoundSession] = None
+
+    #: Details about a failed device bound session network request if there was
+    #: one.
+    failed_request: typing.Optional[DeviceBoundSessionFailedRequest] = None
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['refreshResult'] = self.refresh_result
+        json['wasFullyProactiveRefresh'] = self.was_fully_proactive_refresh
+        if self.fetch_result is not None:
+            json['fetchResult'] = self.fetch_result.to_json()
+        if self.new_session is not None:
+            json['newSession'] = self.new_session.to_json()
+        if self.failed_request is not None:
+            json['failedRequest'] = self.failed_request.to_json()
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> RefreshEventDetails:
+        return cls(
+            refresh_result=str(json['refreshResult']),
+            was_fully_proactive_refresh=bool(json['wasFullyProactiveRefresh']),
+            fetch_result=DeviceBoundSessionFetchResult.from_json(json.get('fetchResult', None)) if json.get('fetchResult', None) is not None else None,
+            new_session=DeviceBoundSession.from_json(json.get('newSession', None)) if json.get('newSession', None) is not None else None,
+            failed_request=DeviceBoundSessionFailedRequest.from_json(json.get('failedRequest', None)) if json.get('failedRequest', None) is not None else None,
+        )
+
+
+@dataclass
+class TerminationEventDetails:
+    '''
+    Session event details specific to termination.
+    '''
+    #: The reason for a session being deleted.
+    deletion_reason: str
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['deletionReason'] = self.deletion_reason
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> TerminationEventDetails:
+        return cls(
+            deletion_reason=str(json['deletionReason']),
+        )
+
+
+@dataclass
+class ChallengeEventDetails:
+    '''
+    Session event details specific to challenges.
+    '''
+    #: The result of a challenge.
+    challenge_result: str
+
+    #: The challenge set.
+    challenge: str
+
+    def to_json(self) -> T_JSON_DICT:
+        json: T_JSON_DICT = dict()
+        json['challengeResult'] = self.challenge_result
+        json['challenge'] = self.challenge
+        return json
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> ChallengeEventDetails:
+        return cls(
+            challenge_result=str(json['challengeResult']),
+            challenge=str(json['challenge']),
+        )
+
+
+@dataclass
 class LoadNetworkResourcePageResult:
     '''
     An object providing the result of a network resource load.
@@ -2636,11 +3190,11 @@ class LoadNetworkResourcePageResult:
     def from_json(cls, json: T_JSON_DICT) -> LoadNetworkResourcePageResult:
         return cls(
             success=bool(json['success']),
-            net_error=float(json['netError']) if json.get('netError', None) is not None else None,
-            net_error_name=str(json['netErrorName']) if json.get('netErrorName', None) is not None else None,
-            http_status_code=float(json['httpStatusCode']) if json.get('httpStatusCode', None) is not None else None,
-            stream=io.StreamHandle.from_json(json['stream']) if json.get('stream', None) is not None else None,
-            headers=Headers.from_json(json['headers']) if json.get('headers', None) is not None else None,
+            net_error=float(json.get('netError', None)) if json.get('netError', None) is not None else None,
+            net_error_name=str(json.get('netErrorName', None)) if json.get('netErrorName', None) is not None else None,
+            http_status_code=float(json.get('httpStatusCode', None)) if json.get('httpStatusCode', None) is not None else None,
+            stream=io.StreamHandle.from_json(json.get('stream', None)) if json.get('stream', None) is not None else None,
+            headers=Headers.from_json(json.get('headers', None)) if json.get('headers', None) is not None else None,
         )
 
 
@@ -2666,41 +3220,6 @@ class LoadNetworkResourceOptions:
             disable_cache=bool(json['disableCache']),
             include_credentials=bool(json['includeCredentials']),
         )
-
-
-def get_ip_protection_proxy_status() -> typing.Generator[T_JSON_DICT,T_JSON_DICT,IpProxyStatus]:
-    '''
-    Returns enum representing if IP Proxy of requests is available
-    or reason it is not active.
-
-    **EXPERIMENTAL**
-
-    :returns: Whether IP proxy is available
-    '''
-    cmd_dict: T_JSON_DICT = {
-        'method': 'Network.getIPProtectionProxyStatus',
-    }
-    json = yield cmd_dict
-    return IpProxyStatus.from_json(json['status'])
-
-
-def set_ip_protection_proxy_bypass_enabled(
-        enabled: bool
-    ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,None]:
-    '''
-    Sets bypass IP Protection Proxy boolean.
-
-    **EXPERIMENTAL**
-
-    :param enabled: Whether IP Proxy is being bypassed by devtools; false by default.
-    '''
-    params: T_JSON_DICT = dict()
-    params['enabled'] = enabled
-    cmd_dict: T_JSON_DICT = {
-        'method': 'Network.setIPProtectionProxyBypassEnabled',
-        'params': params,
-    }
-    json = yield cmd_dict
 
 
 def set_accepted_encodings(
@@ -2946,8 +3465,9 @@ def emulate_network_conditions(
 
 
 def emulate_network_conditions_by_rule(
-        offline: bool,
-        matched_network_conditions: typing.List[NetworkConditions]
+        matched_network_conditions: typing.List[NetworkConditions],
+        offline: typing.Optional[bool] = None,
+        emulate_offline_service_worker: typing.Optional[bool] = None
     ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,typing.List[str]]:
     '''
     Activates emulation of network conditions for individual requests using URL match patterns. Unlike the deprecated
@@ -2956,12 +3476,16 @@ def emulate_network_conditions_by_rule(
 
     **EXPERIMENTAL**
 
-    :param offline: True to emulate internet disconnection.
+    :param offline: **(DEPRECATED)** *(Optional)* True to emulate internet disconnection. Deprecated, use the offline property in matchedNetworkConditions or emulateOfflineServiceWorker instead.
+    :param emulate_offline_service_worker: *(Optional)* True to emulate offline service worker.
     :param matched_network_conditions: Configure conditions for matching requests. If multiple entries match a request, the first entry wins.  Global conditions can be configured by leaving the urlPattern for the conditions empty. These global conditions are also applied for throttling of p2p connections.
     :returns: An id for each entry in matchedNetworkConditions. The id will be included in the requestWillBeSentExtraInfo for requests affected by a rule.
     '''
     params: T_JSON_DICT = dict()
-    params['offline'] = offline
+    if offline is not None:
+        params['offline'] = offline
+    if emulate_offline_service_worker is not None:
+        params['emulateOfflineServiceWorker'] = emulate_offline_service_worker
     params['matchedNetworkConditions'] = [i.to_json() for i in matched_network_conditions]
     cmd_dict: T_JSON_DICT = {
         'method': 'Network.emulateNetworkConditionsByRule',
@@ -3013,11 +3537,11 @@ def enable(
     '''
     Enables network tracking, network events will now be delivered to the client.
 
-    :param max_total_buffer_size: **(EXPERIMENTAL)** *(Optional)* Buffer size in bytes to use when preserving network payloads (XHRs, etc).
+    :param max_total_buffer_size: **(EXPERIMENTAL)** *(Optional)* Buffer size in bytes to use when preserving network payloads (XHRs, etc). This is the maximum number of bytes that will be collected by this DevTools session.
     :param max_resource_buffer_size: **(EXPERIMENTAL)** *(Optional)* Per-resource buffer size in bytes to use when preserving network payloads (XHRs, etc).
     :param max_post_data_size: *(Optional)* Longest post body size (in bytes) that would be included in requestWillBeSent notification
     :param report_direct_socket_traffic: **(EXPERIMENTAL)** *(Optional)* Whether DirectSocket chunk send/receive events should be reported.
-    :param enable_durable_messages: **(EXPERIMENTAL)** *(Optional)* Enable storing response bodies outside of renderer, so that these survive a cross-process navigation. Requires maxTotalBufferSize to be set. Currently defaults to false.
+    :param enable_durable_messages: **(EXPERIMENTAL)** *(Optional)* Enable storing response bodies outside of renderer, so that these survive a cross-process navigation. Requires maxTotalBufferSize to be set. Currently defaults to false. This field is being deprecated in favor of the dedicated configureDurableMessages command, due to the possibility of deadlocks when awaiting Network.enable before issuing Runtime.runIfWaitingForDebugger.
     '''
     params: T_JSON_DICT = dict()
     if max_total_buffer_size is not None:
@@ -3032,6 +3556,32 @@ def enable(
         params['enableDurableMessages'] = enable_durable_messages
     cmd_dict: T_JSON_DICT = {
         'method': 'Network.enable',
+        'params': params,
+    }
+    json = yield cmd_dict
+
+
+def configure_durable_messages(
+        max_total_buffer_size: typing.Optional[int] = None,
+        max_resource_buffer_size: typing.Optional[int] = None
+    ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,None]:
+    '''
+    Configures storing response bodies outside of renderer, so that these survive
+    a cross-process navigation.
+    If maxTotalBufferSize is not set, durable messages are disabled.
+
+    **EXPERIMENTAL**
+
+    :param max_total_buffer_size: *(Optional)* Buffer size in bytes to use when preserving network payloads (XHRs, etc).
+    :param max_resource_buffer_size: *(Optional)* Per-resource buffer size in bytes to use when preserving network payloads (XHRs, etc).
+    '''
+    params: T_JSON_DICT = dict()
+    if max_total_buffer_size is not None:
+        params['maxTotalBufferSize'] = max_total_buffer_size
+    if max_resource_buffer_size is not None:
+        params['maxResourceBufferSize'] = max_resource_buffer_size
+    cmd_dict: T_JSON_DICT = {
+        'method': 'Network.configureDurableMessages',
         'params': params,
     }
     json = yield cmd_dict
@@ -3124,12 +3674,15 @@ def get_response_body(
 
 def get_request_post_data(
         request_id: RequestId
-    ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,str]:
+    ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,typing.Tuple[str, bool]]:
     '''
     Returns post data sent with the request. Returns an error when no data was sent with the request.
 
     :param request_id: Identifier of the network request to get content for.
-    :returns: Request body string, omitting files from multipart requests
+    :returns: A tuple with the following items:
+
+        0. **postData** - Request body string, omitting files from multipart requests
+        1. **base64Encoded** - True, if content was sent as base64.
     '''
     params: T_JSON_DICT = dict()
     params['requestId'] = request_id.to_json()
@@ -3138,7 +3691,10 @@ def get_request_post_data(
         'params': params,
     }
     json = yield cmd_dict
-    return str(json['postData'])
+    return (
+        str(json['postData']),
+        bool(json['base64Encoded'])
+    )
 
 
 def get_response_body_for_interception(
@@ -3314,7 +3870,6 @@ def set_cookie(
         same_site: typing.Optional[CookieSameSite] = None,
         expires: typing.Optional[TimeSinceEpoch] = None,
         priority: typing.Optional[CookiePriority] = None,
-        same_party: typing.Optional[bool] = None,
         source_scheme: typing.Optional[CookieSourceScheme] = None,
         source_port: typing.Optional[int] = None,
         partition_key: typing.Optional[CookiePartitionKey] = None
@@ -3332,7 +3887,6 @@ def set_cookie(
     :param same_site: *(Optional)* Cookie SameSite type.
     :param expires: *(Optional)* Cookie expiration date, session cookie if not set
     :param priority: **(EXPERIMENTAL)** *(Optional)* Cookie Priority type.
-    :param same_party: **(EXPERIMENTAL)** *(Optional)* True if cookie is SameParty.
     :param source_scheme: **(EXPERIMENTAL)** *(Optional)* Cookie source scheme type.
     :param source_port: **(EXPERIMENTAL)** *(Optional)* Cookie source port. Valid values are {-1, [1, 65535]}, -1 indicates an unspecified port. An unspecified port value allows protocol clients to emulate legacy cookie scope for the port. This is a temporary ability and it will be removed in the future.
     :param partition_key: **(EXPERIMENTAL)** *(Optional)* Cookie partition key. If not set, the cookie will be set as not partitioned.
@@ -3357,8 +3911,6 @@ def set_cookie(
         params['expires'] = expires.to_json()
     if priority is not None:
         params['priority'] = priority.to_json()
-    if same_party is not None:
-        params['sameParty'] = same_party
     if source_scheme is not None:
         params['sourceScheme'] = source_scheme.to_json()
     if source_port is not None:
@@ -3542,6 +4094,65 @@ def enable_reporting_api(
     json = yield cmd_dict
 
 
+def enable_device_bound_sessions(
+        enable: bool
+    ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,None]:
+    '''
+    Sets up tracking device bound sessions and fetching of initial set of sessions.
+
+    **EXPERIMENTAL**
+
+    :param enable: Whether to enable or disable events.
+    '''
+    params: T_JSON_DICT = dict()
+    params['enable'] = enable
+    cmd_dict: T_JSON_DICT = {
+        'method': 'Network.enableDeviceBoundSessions',
+        'params': params,
+    }
+    json = yield cmd_dict
+
+
+def delete_device_bound_session(
+        key: DeviceBoundSessionKey
+    ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,None]:
+    '''
+    Deletes a device bound session.
+
+    **EXPERIMENTAL**
+
+    :param key:
+    '''
+    params: T_JSON_DICT = dict()
+    params['key'] = key.to_json()
+    cmd_dict: T_JSON_DICT = {
+        'method': 'Network.deleteDeviceBoundSession',
+        'params': params,
+    }
+    json = yield cmd_dict
+
+
+def fetch_schemeful_site(
+        origin: str
+    ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,str]:
+    '''
+    Fetches the schemeful site for a specific origin.
+
+    **EXPERIMENTAL**
+
+    :param origin: The URL origin.
+    :returns: The corresponding schemeful site.
+    '''
+    params: T_JSON_DICT = dict()
+    params['origin'] = origin
+    cmd_dict: T_JSON_DICT = {
+        'method': 'Network.fetchSchemefulSite',
+        'params': params,
+    }
+    json = yield cmd_dict
+    return str(json['schemefulSite'])
+
+
 def load_network_resource(
         url: str,
         options: LoadNetworkResourceOptions,
@@ -3571,9 +4182,7 @@ def load_network_resource(
 
 
 def set_cookie_controls(
-        enable_third_party_cookie_restriction: bool,
-        disable_third_party_cookie_metadata: bool,
-        disable_third_party_cookie_heuristics: bool
+        enable_third_party_cookie_restriction: bool
     ) -> typing.Generator[T_JSON_DICT,T_JSON_DICT,None]:
     '''
     Sets Controls for third-party cookie access
@@ -3582,13 +4191,9 @@ def set_cookie_controls(
     **EXPERIMENTAL**
 
     :param enable_third_party_cookie_restriction: Whether 3pc restriction is enabled.
-    :param disable_third_party_cookie_metadata: Whether 3pc grace period exception should be enabled; false by default.
-    :param disable_third_party_cookie_heuristics: Whether 3pc heuristics exceptions should be enabled; false by default.
     '''
     params: T_JSON_DICT = dict()
     params['enableThirdPartyCookieRestriction'] = enable_third_party_cookie_restriction
-    params['disableThirdPartyCookieMetadata'] = disable_third_party_cookie_metadata
-    params['disableThirdPartyCookieHeuristics'] = disable_third_party_cookie_heuristics
     cmd_dict: T_JSON_DICT = {
         'method': 'Network.setCookieControls',
         'params': params,
@@ -3620,7 +4225,7 @@ class DataReceived:
             timestamp=MonotonicTime.from_json(json['timestamp']),
             data_length=int(json['dataLength']),
             encoded_data_length=int(json['encodedDataLength']),
-            data=str(json['data']) if json.get('data', None) is not None else None
+            data=str(json.get('data', None)) if json.get('data', None) is not None else None
         )
 
 
@@ -3680,9 +4285,9 @@ class LoadingFailed:
             timestamp=MonotonicTime.from_json(json['timestamp']),
             type_=ResourceType.from_json(json['type']),
             error_text=str(json['errorText']),
-            canceled=bool(json['canceled']) if json.get('canceled', None) is not None else None,
-            blocked_reason=BlockedReason.from_json(json['blockedReason']) if json.get('blockedReason', None) is not None else None,
-            cors_error_status=CorsErrorStatus.from_json(json['corsErrorStatus']) if json.get('corsErrorStatus', None) is not None else None
+            canceled=bool(json.get('canceled', None)) if json.get('canceled', None) is not None else None,
+            blocked_reason=BlockedReason.from_json(json.get('blockedReason', None)) if json.get('blockedReason', None) is not None else None,
+            cors_error_status=CorsErrorStatus.from_json(json.get('corsErrorStatus', None)) if json.get('corsErrorStatus', None) is not None else None
         )
 
 
@@ -3759,13 +4364,13 @@ class RequestIntercepted:
             frame_id=page.FrameId.from_json(json['frameId']),
             resource_type=ResourceType.from_json(json['resourceType']),
             is_navigation_request=bool(json['isNavigationRequest']),
-            is_download=bool(json['isDownload']) if json.get('isDownload', None) is not None else None,
-            redirect_url=str(json['redirectUrl']) if json.get('redirectUrl', None) is not None else None,
-            auth_challenge=AuthChallenge.from_json(json['authChallenge']) if json.get('authChallenge', None) is not None else None,
-            response_error_reason=ErrorReason.from_json(json['responseErrorReason']) if json.get('responseErrorReason', None) is not None else None,
-            response_status_code=int(json['responseStatusCode']) if json.get('responseStatusCode', None) is not None else None,
-            response_headers=Headers.from_json(json['responseHeaders']) if json.get('responseHeaders', None) is not None else None,
-            request_id=RequestId.from_json(json['requestId']) if json.get('requestId', None) is not None else None
+            is_download=bool(json.get('isDownload', None)) if json.get('isDownload', None) is not None else None,
+            redirect_url=str(json.get('redirectUrl', None)) if json.get('redirectUrl', None) is not None else None,
+            auth_challenge=AuthChallenge.from_json(json.get('authChallenge', None)) if json.get('authChallenge', None) is not None else None,
+            response_error_reason=ErrorReason.from_json(json.get('responseErrorReason', None)) if json.get('responseErrorReason', None) is not None else None,
+            response_status_code=int(json.get('responseStatusCode', None)) if json.get('responseStatusCode', None) is not None else None,
+            response_headers=Headers.from_json(json.get('responseHeaders', None)) if json.get('responseHeaders', None) is not None else None,
+            request_id=RequestId.from_json(json.get('requestId', None)) if json.get('requestId', None) is not None else None
         )
 
 
@@ -3817,6 +4422,8 @@ class RequestWillBeSent:
     frame_id: typing.Optional[page.FrameId]
     #: Whether the request is initiated by a user gesture. Defaults to false.
     has_user_gesture: typing.Optional[bool]
+    #: The render-blocking behavior of the request.
+    render_blocking_behavior: typing.Optional[RenderBlockingBehavior]
 
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> RequestWillBeSent:
@@ -3829,10 +4436,11 @@ class RequestWillBeSent:
             wall_time=TimeSinceEpoch.from_json(json['wallTime']),
             initiator=Initiator.from_json(json['initiator']),
             redirect_has_extra_info=bool(json['redirectHasExtraInfo']),
-            redirect_response=Response.from_json(json['redirectResponse']) if json.get('redirectResponse', None) is not None else None,
-            type_=ResourceType.from_json(json['type']) if json.get('type', None) is not None else None,
-            frame_id=page.FrameId.from_json(json['frameId']) if json.get('frameId', None) is not None else None,
-            has_user_gesture=bool(json['hasUserGesture']) if json.get('hasUserGesture', None) is not None else None
+            redirect_response=Response.from_json(json.get('redirectResponse', None)) if json.get('redirectResponse', None) is not None else None,
+            type_=ResourceType.from_json(json.get('type', None)) if json.get('type', None) is not None else None,
+            frame_id=page.FrameId.from_json(json.get('frameId', None)) if json.get('frameId', None) is not None else None,
+            has_user_gesture=bool(json.get('hasUserGesture', None)) if json.get('hasUserGesture', None) is not None else None,
+            render_blocking_behavior=RenderBlockingBehavior.from_json(json.get('renderBlockingBehavior', None)) if json.get('renderBlockingBehavior', None) is not None else None
         )
 
 
@@ -3912,7 +4520,7 @@ class ResponseReceived:
             type_=ResourceType.from_json(json['type']),
             response=Response.from_json(json['response']),
             has_extra_info=bool(json['hasExtraInfo']),
-            frame_id=page.FrameId.from_json(json['frameId']) if json.get('frameId', None) is not None else None
+            frame_id=page.FrameId.from_json(json.get('frameId', None)) if json.get('frameId', None) is not None else None
         )
 
 
@@ -3953,7 +4561,7 @@ class WebSocketCreated:
         return cls(
             request_id=RequestId.from_json(json['requestId']),
             url=str(json['url']),
-            initiator=Initiator.from_json(json['initiator']) if json.get('initiator', None) is not None else None
+            initiator=Initiator.from_json(json.get('initiator', None)) if json.get('initiator', None) is not None else None
         )
 
 
@@ -4091,7 +4699,7 @@ class WebTransportCreated:
             transport_id=RequestId.from_json(json['transportId']),
             url=str(json['url']),
             timestamp=MonotonicTime.from_json(json['timestamp']),
-            initiator=Initiator.from_json(json['initiator']) if json.get('initiator', None) is not None else None
+            initiator=Initiator.from_json(json.get('initiator', None)) if json.get('initiator', None) is not None else None
         )
 
 
@@ -4157,7 +4765,7 @@ class DirectTCPSocketCreated:
             remote_port=int(json['remotePort']),
             options=DirectTCPSocketOptions.from_json(json['options']),
             timestamp=MonotonicTime.from_json(json['timestamp']),
-            initiator=Initiator.from_json(json['initiator']) if json.get('initiator', None) is not None else None
+            initiator=Initiator.from_json(json.get('initiator', None)) if json.get('initiator', None) is not None else None
         )
 
 
@@ -4185,8 +4793,8 @@ class DirectTCPSocketOpened:
             remote_addr=str(json['remoteAddr']),
             remote_port=int(json['remotePort']),
             timestamp=MonotonicTime.from_json(json['timestamp']),
-            local_addr=str(json['localAddr']) if json.get('localAddr', None) is not None else None,
-            local_port=int(json['localPort']) if json.get('localPort', None) is not None else None
+            local_addr=str(json.get('localAddr', None)) if json.get('localAddr', None) is not None else None,
+            local_port=int(json.get('localPort', None)) if json.get('localPort', None) is not None else None
         )
 
 
@@ -4272,6 +4880,44 @@ class DirectTCPSocketChunkReceived:
         )
 
 
+@event_class('Network.directUDPSocketJoinedMulticastGroup')
+@dataclass
+class DirectUDPSocketJoinedMulticastGroup:
+    '''
+    **EXPERIMENTAL**
+
+
+    '''
+    identifier: RequestId
+    ip_address: str
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DirectUDPSocketJoinedMulticastGroup:
+        return cls(
+            identifier=RequestId.from_json(json['identifier']),
+            ip_address=str(json['IPAddress'])
+        )
+
+
+@event_class('Network.directUDPSocketLeftMulticastGroup')
+@dataclass
+class DirectUDPSocketLeftMulticastGroup:
+    '''
+    **EXPERIMENTAL**
+
+
+    '''
+    identifier: RequestId
+    ip_address: str
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DirectUDPSocketLeftMulticastGroup:
+        return cls(
+            identifier=RequestId.from_json(json['identifier']),
+            ip_address=str(json['IPAddress'])
+        )
+
+
 @event_class('Network.directUDPSocketCreated')
 @dataclass
 class DirectUDPSocketCreated:
@@ -4291,7 +4937,7 @@ class DirectUDPSocketCreated:
             identifier=RequestId.from_json(json['identifier']),
             options=DirectUDPSocketOptions.from_json(json['options']),
             timestamp=MonotonicTime.from_json(json['timestamp']),
-            initiator=Initiator.from_json(json['initiator']) if json.get('initiator', None) is not None else None
+            initiator=Initiator.from_json(json.get('initiator', None)) if json.get('initiator', None) is not None else None
         )
 
 
@@ -4319,8 +4965,8 @@ class DirectUDPSocketOpened:
             local_addr=str(json['localAddr']),
             local_port=int(json['localPort']),
             timestamp=MonotonicTime.from_json(json['timestamp']),
-            remote_addr=str(json['remoteAddr']) if json.get('remoteAddr', None) is not None else None,
-            remote_port=int(json['remotePort']) if json.get('remotePort', None) is not None else None
+            remote_addr=str(json.get('remoteAddr', None)) if json.get('remoteAddr', None) is not None else None,
+            remote_port=int(json.get('remotePort', None)) if json.get('remotePort', None) is not None else None
         )
 
 
@@ -4426,6 +5072,8 @@ class RequestWillBeSentExtraInfo:
     headers: Headers
     #: Connection timing information for the request.
     connect_timing: ConnectTiming
+    #: How the request site's device bound sessions were used during this request.
+    device_bound_session_usages: typing.Optional[typing.List[DeviceBoundSessionWithUsage]]
     #: The client security state set for the request.
     client_security_state: typing.Optional[ClientSecurityState]
     #: Whether the site has partitioned cookies stored in a partition different than the current one.
@@ -4441,9 +5089,10 @@ class RequestWillBeSentExtraInfo:
             associated_cookies=[AssociatedCookie.from_json(i) for i in json['associatedCookies']],
             headers=Headers.from_json(json['headers']),
             connect_timing=ConnectTiming.from_json(json['connectTiming']),
-            client_security_state=ClientSecurityState.from_json(json['clientSecurityState']) if json.get('clientSecurityState', None) is not None else None,
-            site_has_cookie_in_other_partition=bool(json['siteHasCookieInOtherPartition']) if json.get('siteHasCookieInOtherPartition', None) is not None else None,
-            applied_network_conditions_id=str(json['appliedNetworkConditionsId']) if json.get('appliedNetworkConditionsId', None) is not None else None
+            device_bound_session_usages=[DeviceBoundSessionWithUsage.from_json(i) for i in json.get('deviceBoundSessionUsages', None)] if json.get('deviceBoundSessionUsages', None) is not None else None,
+            client_security_state=ClientSecurityState.from_json(json.get('clientSecurityState', None)) if json.get('clientSecurityState', None) is not None else None,
+            site_has_cookie_in_other_partition=bool(json.get('siteHasCookieInOtherPartition', None)) if json.get('siteHasCookieInOtherPartition', None) is not None else None,
+            applied_network_conditions_id=str(json.get('appliedNetworkConditionsId', None)) if json.get('appliedNetworkConditionsId', None) is not None else None
         )
 
 
@@ -4495,10 +5144,10 @@ class ResponseReceivedExtraInfo:
             headers=Headers.from_json(json['headers']),
             resource_ip_address_space=IPAddressSpace.from_json(json['resourceIPAddressSpace']),
             status_code=int(json['statusCode']),
-            headers_text=str(json['headersText']) if json.get('headersText', None) is not None else None,
-            cookie_partition_key=CookiePartitionKey.from_json(json['cookiePartitionKey']) if json.get('cookiePartitionKey', None) is not None else None,
-            cookie_partition_key_opaque=bool(json['cookiePartitionKeyOpaque']) if json.get('cookiePartitionKeyOpaque', None) is not None else None,
-            exempted_cookies=[ExemptedSetCookieWithReason.from_json(i) for i in json['exemptedCookies']] if json.get('exemptedCookies', None) is not None else None
+            headers_text=str(json.get('headersText', None)) if json.get('headersText', None) is not None else None,
+            cookie_partition_key=CookiePartitionKey.from_json(json.get('cookiePartitionKey', None)) if json.get('cookiePartitionKey', None) is not None else None,
+            cookie_partition_key_opaque=bool(json.get('cookiePartitionKeyOpaque', None)) if json.get('cookiePartitionKeyOpaque', None) is not None else None,
+            exempted_cookies=[ExemptedSetCookieWithReason.from_json(i) for i in json.get('exemptedCookies', None)] if json.get('exemptedCookies', None) is not None else None
         )
 
 
@@ -4559,9 +5208,9 @@ class TrustTokenOperationDone:
             status=str(json['status']),
             type_=TrustTokenOperationType.from_json(json['type']),
             request_id=RequestId.from_json(json['requestId']),
-            top_level_origin=str(json['topLevelOrigin']) if json.get('topLevelOrigin', None) is not None else None,
-            issuer_origin=str(json['issuerOrigin']) if json.get('issuerOrigin', None) is not None else None,
-            issued_token_count=int(json['issuedTokenCount']) if json.get('issuedTokenCount', None) is not None else None
+            top_level_origin=str(json.get('topLevelOrigin', None)) if json.get('topLevelOrigin', None) is not None else None,
+            issuer_origin=str(json.get('issuerOrigin', None)) if json.get('issuerOrigin', None) is not None else None,
+            issued_token_count=int(json.get('issuedTokenCount', None)) if json.get('issuedTokenCount', None) is not None else None
         )
 
 
@@ -4579,105 +5228,6 @@ class PolicyUpdated:
     def from_json(cls, json: T_JSON_DICT) -> PolicyUpdated:
         return cls(
 
-        )
-
-
-@event_class('Network.subresourceWebBundleMetadataReceived')
-@dataclass
-class SubresourceWebBundleMetadataReceived:
-    '''
-    **EXPERIMENTAL**
-
-    Fired once when parsing the .wbn file has succeeded.
-    The event contains the information about the web bundle contents.
-    '''
-    #: Request identifier. Used to match this information to another event.
-    request_id: RequestId
-    #: A list of URLs of resources in the subresource Web Bundle.
-    urls: typing.List[str]
-
-    @classmethod
-    def from_json(cls, json: T_JSON_DICT) -> SubresourceWebBundleMetadataReceived:
-        return cls(
-            request_id=RequestId.from_json(json['requestId']),
-            urls=[str(i) for i in json['urls']]
-        )
-
-
-@event_class('Network.subresourceWebBundleMetadataError')
-@dataclass
-class SubresourceWebBundleMetadataError:
-    '''
-    **EXPERIMENTAL**
-
-    Fired once when parsing the .wbn file has failed.
-    '''
-    #: Request identifier. Used to match this information to another event.
-    request_id: RequestId
-    #: Error message
-    error_message: str
-
-    @classmethod
-    def from_json(cls, json: T_JSON_DICT) -> SubresourceWebBundleMetadataError:
-        return cls(
-            request_id=RequestId.from_json(json['requestId']),
-            error_message=str(json['errorMessage'])
-        )
-
-
-@event_class('Network.subresourceWebBundleInnerResponseParsed')
-@dataclass
-class SubresourceWebBundleInnerResponseParsed:
-    '''
-    **EXPERIMENTAL**
-
-    Fired when handling requests for resources within a .wbn file.
-    Note: this will only be fired for resources that are requested by the webpage.
-    '''
-    #: Request identifier of the subresource request
-    inner_request_id: RequestId
-    #: URL of the subresource resource.
-    inner_request_url: str
-    #: Bundle request identifier. Used to match this information to another event.
-    #: This made be absent in case when the instrumentation was enabled only
-    #: after webbundle was parsed.
-    bundle_request_id: typing.Optional[RequestId]
-
-    @classmethod
-    def from_json(cls, json: T_JSON_DICT) -> SubresourceWebBundleInnerResponseParsed:
-        return cls(
-            inner_request_id=RequestId.from_json(json['innerRequestId']),
-            inner_request_url=str(json['innerRequestURL']),
-            bundle_request_id=RequestId.from_json(json['bundleRequestId']) if json.get('bundleRequestId', None) is not None else None
-        )
-
-
-@event_class('Network.subresourceWebBundleInnerResponseError')
-@dataclass
-class SubresourceWebBundleInnerResponseError:
-    '''
-    **EXPERIMENTAL**
-
-    Fired when request for resources within a .wbn file failed.
-    '''
-    #: Request identifier of the subresource request
-    inner_request_id: RequestId
-    #: URL of the subresource resource.
-    inner_request_url: str
-    #: Error message
-    error_message: str
-    #: Bundle request identifier. Used to match this information to another event.
-    #: This made be absent in case when the instrumentation was enabled only
-    #: after webbundle was parsed.
-    bundle_request_id: typing.Optional[RequestId]
-
-    @classmethod
-    def from_json(cls, json: T_JSON_DICT) -> SubresourceWebBundleInnerResponseError:
-        return cls(
-            inner_request_id=RequestId.from_json(json['innerRequestId']),
-            inner_request_url=str(json['innerRequestURL']),
-            error_message=str(json['errorMessage']),
-            bundle_request_id=RequestId.from_json(json['bundleRequestId']) if json.get('bundleRequestId', None) is not None else None
         )
 
 
@@ -4733,4 +5283,59 @@ class ReportingApiEndpointsChangedForOrigin:
         return cls(
             origin=str(json['origin']),
             endpoints=[ReportingApiEndpoint.from_json(i) for i in json['endpoints']]
+        )
+
+
+@event_class('Network.deviceBoundSessionsAdded')
+@dataclass
+class DeviceBoundSessionsAdded:
+    '''
+    **EXPERIMENTAL**
+
+    Triggered when the initial set of device bound sessions is added.
+    '''
+    #: The device bound sessions.
+    sessions: typing.List[DeviceBoundSession]
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionsAdded:
+        return cls(
+            sessions=[DeviceBoundSession.from_json(i) for i in json['sessions']]
+        )
+
+
+@event_class('Network.deviceBoundSessionEventOccurred')
+@dataclass
+class DeviceBoundSessionEventOccurred:
+    '''
+    **EXPERIMENTAL**
+
+    Triggered when a device bound session event occurs.
+    '''
+    #: A unique identifier for this session event.
+    event_id: DeviceBoundSessionEventId
+    #: The site this session event is associated with.
+    site: str
+    #: Whether this event was considered successful.
+    succeeded: bool
+    #: The session ID this event is associated with. May not be populated for
+    #: failed events.
+    session_id: typing.Optional[str]
+    #: The below are the different session event type details. Exactly one is populated.
+    creation_event_details: typing.Optional[CreationEventDetails]
+    refresh_event_details: typing.Optional[RefreshEventDetails]
+    termination_event_details: typing.Optional[TerminationEventDetails]
+    challenge_event_details: typing.Optional[ChallengeEventDetails]
+
+    @classmethod
+    def from_json(cls, json: T_JSON_DICT) -> DeviceBoundSessionEventOccurred:
+        return cls(
+            event_id=DeviceBoundSessionEventId.from_json(json['eventId']),
+            site=str(json['site']),
+            succeeded=bool(json['succeeded']),
+            session_id=str(json.get('sessionId', None)) if json.get('sessionId', None) is not None else None,
+            creation_event_details=CreationEventDetails.from_json(json.get('creationEventDetails', None)) if json.get('creationEventDetails', None) is not None else None,
+            refresh_event_details=RefreshEventDetails.from_json(json.get('refreshEventDetails', None)) if json.get('refreshEventDetails', None) is not None else None,
+            termination_event_details=TerminationEventDetails.from_json(json.get('terminationEventDetails', None)) if json.get('terminationEventDetails', None) is not None else None,
+            challenge_event_details=ChallengeEventDetails.from_json(json.get('challengeEventDetails', None)) if json.get('challengeEventDetails', None) is not None else None
         )

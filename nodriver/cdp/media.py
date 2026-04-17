@@ -202,7 +202,7 @@ class Player:
     def from_json(cls, json: T_JSON_DICT) -> Player:
         return cls(
             player_id=PlayerId.from_json(json['playerId']),
-            dom_node_id=dom.BackendNodeId.from_json(json['domNodeId']) if json.get('domNodeId', None) is not None else None,
+            dom_node_id=dom.BackendNodeId.from_json(json.get('domNodeId', None)) if json.get('domNodeId', None) is not None else None,
         )
 
 

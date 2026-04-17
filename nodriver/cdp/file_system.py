@@ -94,7 +94,7 @@ class BucketFileSystemLocator:
         return cls(
             storage_key=storage.SerializedStorageKey.from_json(json['storageKey']),
             path_components=[str(i) for i in json['pathComponents']],
-            bucket_name=str(json['bucketName']) if json.get('bucketName', None) is not None else None,
+            bucket_name=str(json.get('bucketName', None)) if json.get('bucketName', None) is not None else None,
         )
 
 

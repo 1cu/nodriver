@@ -154,11 +154,11 @@ class ScanRecord:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> ScanRecord:
         return cls(
-            name=str(json['name']) if json.get('name', None) is not None else None,
-            uuids=[str(i) for i in json['uuids']] if json.get('uuids', None) is not None else None,
-            appearance=int(json['appearance']) if json.get('appearance', None) is not None else None,
-            tx_power=int(json['txPower']) if json.get('txPower', None) is not None else None,
-            manufacturer_data=[ManufacturerData.from_json(i) for i in json['manufacturerData']] if json.get('manufacturerData', None) is not None else None,
+            name=str(json.get('name', None)) if json.get('name', None) is not None else None,
+            uuids=[str(i) for i in json.get('uuids', None)] if json.get('uuids', None) is not None else None,
+            appearance=int(json.get('appearance', None)) if json.get('appearance', None) is not None else None,
+            tx_power=int(json.get('txPower', None)) if json.get('txPower', None) is not None else None,
+            manufacturer_data=[ManufacturerData.from_json(i) for i in json.get('manufacturerData', None)] if json.get('manufacturerData', None) is not None else None,
         )
 
 
@@ -234,14 +234,14 @@ class CharacteristicProperties:
     @classmethod
     def from_json(cls, json: T_JSON_DICT) -> CharacteristicProperties:
         return cls(
-            broadcast=bool(json['broadcast']) if json.get('broadcast', None) is not None else None,
-            read=bool(json['read']) if json.get('read', None) is not None else None,
-            write_without_response=bool(json['writeWithoutResponse']) if json.get('writeWithoutResponse', None) is not None else None,
-            write=bool(json['write']) if json.get('write', None) is not None else None,
-            notify=bool(json['notify']) if json.get('notify', None) is not None else None,
-            indicate=bool(json['indicate']) if json.get('indicate', None) is not None else None,
-            authenticated_signed_writes=bool(json['authenticatedSignedWrites']) if json.get('authenticatedSignedWrites', None) is not None else None,
-            extended_properties=bool(json['extendedProperties']) if json.get('extendedProperties', None) is not None else None,
+            broadcast=bool(json.get('broadcast', None)) if json.get('broadcast', None) is not None else None,
+            read=bool(json.get('read', None)) if json.get('read', None) is not None else None,
+            write_without_response=bool(json.get('writeWithoutResponse', None)) if json.get('writeWithoutResponse', None) is not None else None,
+            write=bool(json.get('write', None)) if json.get('write', None) is not None else None,
+            notify=bool(json.get('notify', None)) if json.get('notify', None) is not None else None,
+            indicate=bool(json.get('indicate', None)) if json.get('indicate', None) is not None else None,
+            authenticated_signed_writes=bool(json.get('authenticatedSignedWrites', None)) if json.get('authenticatedSignedWrites', None) is not None else None,
+            extended_properties=bool(json.get('extendedProperties', None)) if json.get('extendedProperties', None) is not None else None,
         )
 
 
@@ -600,8 +600,8 @@ class CharacteristicOperationReceived:
         return cls(
             characteristic_id=str(json['characteristicId']),
             type_=CharacteristicOperationType.from_json(json['type']),
-            data=str(json['data']) if json.get('data', None) is not None else None,
-            write_type=CharacteristicWriteType.from_json(json['writeType']) if json.get('writeType', None) is not None else None
+            data=str(json.get('data', None)) if json.get('data', None) is not None else None,
+            write_type=CharacteristicWriteType.from_json(json.get('writeType', None)) if json.get('writeType', None) is not None else None
         )
 
 
@@ -622,5 +622,5 @@ class DescriptorOperationReceived:
         return cls(
             descriptor_id=str(json['descriptorId']),
             type_=DescriptorOperationType.from_json(json['type']),
-            data=str(json['data']) if json.get('data', None) is not None else None
+            data=str(json.get('data', None)) if json.get('data', None) is not None else None
         )

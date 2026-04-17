@@ -76,7 +76,7 @@ def read(
     }
     json = yield cmd_dict
     return (
-        bool(json['base64Encoded']) if json.get('base64Encoded', None) is not None else None,
+        bool(json.get('base64Encoded', None)) if json.get('base64Encoded', None) is not None else None,
         str(json['data']),
         bool(json['eof'])
     )

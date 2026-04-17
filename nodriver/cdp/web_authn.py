@@ -39,6 +39,7 @@ class AuthenticatorProtocol(enum.Enum):
 class Ctap2Version(enum.Enum):
     CTAP2_0 = "ctap2_0"
     CTAP2_1 = "ctap2_1"
+    CTAP2_2 = "ctap2_2"
 
     def to_json(self) -> str:
         return self.value
@@ -98,6 +99,16 @@ class VirtualAuthenticatorOptions:
     #: Defaults to false.
     has_prf: typing.Optional[bool] = None
 
+    #: If set to true, the authenticator will support the hmac-secret extension.
+    #: https://fidoalliance.org/specs/fido-v2.1-ps-20210615/fido-client-to-authenticator-protocol-v2.1-ps-20210615.html#sctn-hmac-secret-extension
+    #: Defaults to false.
+    has_hmac_secret: typing.Optional[bool] = None
+
+    #: If set to true, the authenticator will support the hmac-secret-mc extension.
+    #: https://fidoalliance.org/specs/fido-v2.2-rd-20241003/fido-client-to-authenticator-protocol-v2.2-rd-20241003.html#sctn-hmac-secret-make-cred-extension
+    #: Defaults to false.
+    has_hmac_secret_mc: typing.Optional[bool] = None
+
     #: If set to true, tests of user presence will succeed immediately.
     #: Otherwise, they will not be resolved. Defaults to true.
     automatic_presence_simulation: typing.Optional[bool] = None
@@ -134,6 +145,10 @@ class VirtualAuthenticatorOptions:
             json['hasMinPinLength'] = self.has_min_pin_length
         if self.has_prf is not None:
             json['hasPrf'] = self.has_prf
+        if self.has_hmac_secret is not None:
+            json['hasHmacSecret'] = self.has_hmac_secret
+        if self.has_hmac_secret_mc is not None:
+            json['hasHmacSecretMc'] = self.has_hmac_secret_mc
         if self.automatic_presence_simulation is not None:
             json['automaticPresenceSimulation'] = self.automatic_presence_simulation
         if self.is_user_verified is not None:
@@ -149,17 +164,19 @@ class VirtualAuthenticatorOptions:
         return cls(
             protocol=AuthenticatorProtocol.from_json(json['protocol']),
             transport=AuthenticatorTransport.from_json(json['transport']),
-            ctap2_version=Ctap2Version.from_json(json['ctap2Version']) if json.get('ctap2Version', None) is not None else None,
-            has_resident_key=bool(json['hasResidentKey']) if json.get('hasResidentKey', None) is not None else None,
-            has_user_verification=bool(json['hasUserVerification']) if json.get('hasUserVerification', None) is not None else None,
-            has_large_blob=bool(json['hasLargeBlob']) if json.get('hasLargeBlob', None) is not None else None,
-            has_cred_blob=bool(json['hasCredBlob']) if json.get('hasCredBlob', None) is not None else None,
-            has_min_pin_length=bool(json['hasMinPinLength']) if json.get('hasMinPinLength', None) is not None else None,
-            has_prf=bool(json['hasPrf']) if json.get('hasPrf', None) is not None else None,
-            automatic_presence_simulation=bool(json['automaticPresenceSimulation']) if json.get('automaticPresenceSimulation', None) is not None else None,
-            is_user_verified=bool(json['isUserVerified']) if json.get('isUserVerified', None) is not None else None,
-            default_backup_eligibility=bool(json['defaultBackupEligibility']) if json.get('defaultBackupEligibility', None) is not None else None,
-            default_backup_state=bool(json['defaultBackupState']) if json.get('defaultBackupState', None) is not None else None,
+            ctap2_version=Ctap2Version.from_json(json.get('ctap2Version', None)) if json.get('ctap2Version', None) is not None else None,
+            has_resident_key=bool(json.get('hasResidentKey', None)) if json.get('hasResidentKey', None) is not None else None,
+            has_user_verification=bool(json.get('hasUserVerification', None)) if json.get('hasUserVerification', None) is not None else None,
+            has_large_blob=bool(json.get('hasLargeBlob', None)) if json.get('hasLargeBlob', None) is not None else None,
+            has_cred_blob=bool(json.get('hasCredBlob', None)) if json.get('hasCredBlob', None) is not None else None,
+            has_min_pin_length=bool(json.get('hasMinPinLength', None)) if json.get('hasMinPinLength', None) is not None else None,
+            has_prf=bool(json.get('hasPrf', None)) if json.get('hasPrf', None) is not None else None,
+            has_hmac_secret=bool(json.get('hasHmacSecret', None)) if json.get('hasHmacSecret', None) is not None else None,
+            has_hmac_secret_mc=bool(json.get('hasHmacSecretMc', None)) if json.get('hasHmacSecretMc', None) is not None else None,
+            automatic_presence_simulation=bool(json.get('automaticPresenceSimulation', None)) if json.get('automaticPresenceSimulation', None) is not None else None,
+            is_user_verified=bool(json.get('isUserVerified', None)) if json.get('isUserVerified', None) is not None else None,
+            default_backup_eligibility=bool(json.get('defaultBackupEligibility', None)) if json.get('defaultBackupEligibility', None) is not None else None,
+            default_backup_state=bool(json.get('defaultBackupState', None)) if json.get('defaultBackupState', None) is not None else None,
         )
 
 
@@ -237,13 +254,13 @@ class Credential:
             is_resident_credential=bool(json['isResidentCredential']),
             private_key=str(json['privateKey']),
             sign_count=int(json['signCount']),
-            rp_id=str(json['rpId']) if json.get('rpId', None) is not None else None,
-            user_handle=str(json['userHandle']) if json.get('userHandle', None) is not None else None,
-            large_blob=str(json['largeBlob']) if json.get('largeBlob', None) is not None else None,
-            backup_eligibility=bool(json['backupEligibility']) if json.get('backupEligibility', None) is not None else None,
-            backup_state=bool(json['backupState']) if json.get('backupState', None) is not None else None,
-            user_name=str(json['userName']) if json.get('userName', None) is not None else None,
-            user_display_name=str(json['userDisplayName']) if json.get('userDisplayName', None) is not None else None,
+            rp_id=str(json.get('rpId', None)) if json.get('rpId', None) is not None else None,
+            user_handle=str(json.get('userHandle', None)) if json.get('userHandle', None) is not None else None,
+            large_blob=str(json.get('largeBlob', None)) if json.get('largeBlob', None) is not None else None,
+            backup_eligibility=bool(json.get('backupEligibility', None)) if json.get('backupEligibility', None) is not None else None,
+            backup_state=bool(json.get('backupState', None)) if json.get('backupState', None) is not None else None,
+            user_name=str(json.get('userName', None)) if json.get('userName', None) is not None else None,
+            user_display_name=str(json.get('userDisplayName', None)) if json.get('userDisplayName', None) is not None else None,
         )
 
 

@@ -160,14 +160,14 @@ class AXValueSource:
     def from_json(cls, json: T_JSON_DICT) -> AXValueSource:
         return cls(
             type_=AXValueSourceType.from_json(json['type']),
-            value=AXValue.from_json(json['value']) if json.get('value', None) is not None else None,
-            attribute=str(json['attribute']) if json.get('attribute', None) is not None else None,
-            attribute_value=AXValue.from_json(json['attributeValue']) if json.get('attributeValue', None) is not None else None,
-            superseded=bool(json['superseded']) if json.get('superseded', None) is not None else None,
-            native_source=AXValueNativeSourceType.from_json(json['nativeSource']) if json.get('nativeSource', None) is not None else None,
-            native_source_value=AXValue.from_json(json['nativeSourceValue']) if json.get('nativeSourceValue', None) is not None else None,
-            invalid=bool(json['invalid']) if json.get('invalid', None) is not None else None,
-            invalid_reason=str(json['invalidReason']) if json.get('invalidReason', None) is not None else None,
+            value=AXValue.from_json(json.get('value', None)) if json.get('value', None) is not None else None,
+            attribute=str(json.get('attribute', None)) if json.get('attribute', None) is not None else None,
+            attribute_value=AXValue.from_json(json.get('attributeValue', None)) if json.get('attributeValue', None) is not None else None,
+            superseded=bool(json.get('superseded', None)) if json.get('superseded', None) is not None else None,
+            native_source=AXValueNativeSourceType.from_json(json.get('nativeSource', None)) if json.get('nativeSource', None) is not None else None,
+            native_source_value=AXValue.from_json(json.get('nativeSourceValue', None)) if json.get('nativeSourceValue', None) is not None else None,
+            invalid=bool(json.get('invalid', None)) if json.get('invalid', None) is not None else None,
+            invalid_reason=str(json.get('invalidReason', None)) if json.get('invalidReason', None) is not None else None,
         )
 
 
@@ -195,8 +195,8 @@ class AXRelatedNode:
     def from_json(cls, json: T_JSON_DICT) -> AXRelatedNode:
         return cls(
             backend_dom_node_id=dom.BackendNodeId.from_json(json['backendDOMNodeId']),
-            idref=str(json['idref']) if json.get('idref', None) is not None else None,
-            text=str(json['text']) if json.get('text', None) is not None else None,
+            idref=str(json.get('idref', None)) if json.get('idref', None) is not None else None,
+            text=str(json.get('text', None)) if json.get('text', None) is not None else None,
         )
 
 
@@ -254,9 +254,9 @@ class AXValue:
     def from_json(cls, json: T_JSON_DICT) -> AXValue:
         return cls(
             type_=AXValueType.from_json(json['type']),
-            value=json['value'] if json.get('value', None) is not None else None,
-            related_nodes=[AXRelatedNode.from_json(i) for i in json['relatedNodes']] if json.get('relatedNodes', None) is not None else None,
-            sources=[AXValueSource.from_json(i) for i in json['sources']] if json.get('sources', None) is not None else None,
+            value=json.get('value', None) if json.get('value', None) is not None else None,
+            related_nodes=[AXRelatedNode.from_json(i) for i in json.get('relatedNodes', None)] if json.get('relatedNodes', None) is not None else None,
+            sources=[AXValueSource.from_json(i) for i in json.get('sources', None)] if json.get('sources', None) is not None else None,
         )
 
 
@@ -414,17 +414,17 @@ class AXNode:
         return cls(
             node_id=AXNodeId.from_json(json['nodeId']),
             ignored=bool(json['ignored']),
-            ignored_reasons=[AXProperty.from_json(i) for i in json['ignoredReasons']] if json.get('ignoredReasons', None) is not None else None,
-            role=AXValue.from_json(json['role']) if json.get('role', None) is not None else None,
-            chrome_role=AXValue.from_json(json['chromeRole']) if json.get('chromeRole', None) is not None else None,
-            name=AXValue.from_json(json['name']) if json.get('name', None) is not None else None,
-            description=AXValue.from_json(json['description']) if json.get('description', None) is not None else None,
-            value=AXValue.from_json(json['value']) if json.get('value', None) is not None else None,
-            properties=[AXProperty.from_json(i) for i in json['properties']] if json.get('properties', None) is not None else None,
-            parent_id=AXNodeId.from_json(json['parentId']) if json.get('parentId', None) is not None else None,
-            child_ids=[AXNodeId.from_json(i) for i in json['childIds']] if json.get('childIds', None) is not None else None,
-            backend_dom_node_id=dom.BackendNodeId.from_json(json['backendDOMNodeId']) if json.get('backendDOMNodeId', None) is not None else None,
-            frame_id=page.FrameId.from_json(json['frameId']) if json.get('frameId', None) is not None else None,
+            ignored_reasons=[AXProperty.from_json(i) for i in json.get('ignoredReasons', None)] if json.get('ignoredReasons', None) is not None else None,
+            role=AXValue.from_json(json.get('role', None)) if json.get('role', None) is not None else None,
+            chrome_role=AXValue.from_json(json.get('chromeRole', None)) if json.get('chromeRole', None) is not None else None,
+            name=AXValue.from_json(json.get('name', None)) if json.get('name', None) is not None else None,
+            description=AXValue.from_json(json.get('description', None)) if json.get('description', None) is not None else None,
+            value=AXValue.from_json(json.get('value', None)) if json.get('value', None) is not None else None,
+            properties=[AXProperty.from_json(i) for i in json.get('properties', None)] if json.get('properties', None) is not None else None,
+            parent_id=AXNodeId.from_json(json.get('parentId', None)) if json.get('parentId', None) is not None else None,
+            child_ids=[AXNodeId.from_json(i) for i in json.get('childIds', None)] if json.get('childIds', None) is not None else None,
+            backend_dom_node_id=dom.BackendNodeId.from_json(json.get('backendDOMNodeId', None)) if json.get('backendDOMNodeId', None) is not None else None,
+            frame_id=page.FrameId.from_json(json.get('frameId', None)) if json.get('frameId', None) is not None else None,
         )
 
 
