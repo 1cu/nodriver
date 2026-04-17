@@ -6,7 +6,7 @@ version = "0.48.1"  # Required
 
 description = "Asynchronous browser automation and web scraping for Chromium-based browsers."
 readme = {file = "README.md", content-type = "text/markdown"} # Optional
-requires-python = ">=3.9"
+requires-python = "<3.15,>=3.10"
 license = "AGPL-3.0-only"
 keywords = [
     "webdriver", "browser", "captcha", "scraping",
@@ -25,13 +25,11 @@ classifiers = [  # Optional
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Topic :: Internet :: WWW/HTTP :: Browsers",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 
 ]
 
@@ -48,6 +46,39 @@ dependencies = [
 "Source" = "https://github.com/UltrafunkAmsterdam/nodriver"
 
 
+[dependency-groups]
+build = ["build"]
+lint = ["black", "isort"]
+test = ["pytest>=8", "pytest-asyncio>=0.23"]
+docs = [
+    "sphinx",
+    "sphinx_markdown_builder",
+    "sphinx_autodoc_typehints",
+    "furo",
+    "pygments",
+    "sphinxcontrib-video",
+]
+
+[tool.pdm.scripts]
+build = {cmd = ["python", "-m", "build"]}
+lint = {composite = ["lint-black", "lint-isort"]}
+lint-black = {cmd = ["black", "--check", "nodriver/core"]}
+lint-isort = {cmd = ["isort", "--check-only", "nodriver/core"]}
+test = {cmd = ["pytest", "-q", "-m", "not integration"]}
+test-integration = {cmd = ["pytest", "-q", "-m", "integration"]}
+docs-html = {cmd = ["make", "-C", "docs", "html"]}
+docs-markdown = {cmd = ["make", "-C", "docs", "markdown"]}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "integration: browser-backed tests that require a Chromium executable",
+]
+
+[tool.isort]
+profile = "black"
+
 [tool.setuptools]
 include-package-data = true
 packages = ["nodriver", "nodriver.core", "nodriver.cdp"]
@@ -55,16 +86,3 @@ packages = ["nodriver", "nodriver.core", "nodriver.cdp"]
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[project.optional-dependencies]
-dev = [
-    "black",
-    "build",
-    "isort",
-    "sphinx",
-    "sphinx_markdown_builder",
-    "sphinx_autodoc_typehints",
-    "furo",
-    "pygments",
-    "sphinxcontrib-video"
-]

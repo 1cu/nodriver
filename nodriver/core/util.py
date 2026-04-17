@@ -12,8 +12,18 @@ import logging
 import shutil
 import types
 from ssl import SSLContext
-from typing import (TYPE_CHECKING, Any, Callable, Generator, List, Optional,
-                    Set, Tuple, TypeVar, Union)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Generator,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from .element import Element
 
@@ -5017,8 +5027,9 @@ class ProxyForwarder:
 
         # create a tunnel between client and upstream proxy
         event = asyncio.Event()
-        tasks = self.pipe(remote_reader, writer, event), self.pipe(
-            reader, remote_writer, event
+        tasks = (
+            self.pipe(remote_reader, writer, event),
+            self.pipe(reader, remote_writer, event),
         )
         await asyncio.gather(*tasks)
 

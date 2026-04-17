@@ -1,0 +1,70 @@
+from __future__ import annotations
+
+import asyncio
+
+import pytest
+
+from nodriver import cdp
+
+
+pytestmark = pytest.mark.integration
+
+
+async def test_browser_starts_headless(browser):
+    assert browser.connection is not None
+    assert browser.main_tab is not None
+    assert browser.tabs
+
+
+async def test_can_navigate_data_url_and_read_content(browser):
+    tab = browser.main_tab
+    await tab.get("data:text/html,<html><body><h1>data url</h1></body></html>")
+
+    content = await tab.get_content()
+
+    assert "data url" in content.lower()
+
+
+async def test_can_open_and_close_tab(browser):
+    tab = browser.main_tab
+    new_tab = await tab.get(
+        "data:text/html,<html><body><p>new tab</p></body></html>",
+        new_tab=True,
+    )
+
+    await browser.update_targets()
+    assert len(browser.tabs) >= 2
+
+    await new_tab.close()
+    for _ in range(50):
+        await browser.update_targets()
+        if len(browser.tabs) == 1:
+            break
+        await asyncio.sleep(0.1)
+
+    assert len(browser.tabs) == 1
+
+
+async def test_event_handler_registration_smoke(browser, test_site):
+    events: list[str] = []
+
+    def on_request(event):
+        events.append(event.request.url)
+
+    tab = browser.main_tab
+    tab.add_handler(cdp.network.RequestWillBeSent, on_request)
+    await tab.get(test_site)
+    await tab.sleep(0.5)
+
+    assert events
+    assert any(url.startswith(test_site) for url in events)
+
+
+async def test_browser_stop_after_disconnect(browser):
+    proc = browser._process
+
+    await browser.connection.disconnect()
+    browser.stop()
+    await asyncio.wait_for(proc.wait(), timeout=10)
+
+    assert proc.returncode is not None

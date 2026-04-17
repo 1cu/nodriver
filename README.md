@@ -38,6 +38,22 @@ known to work with
 - brave 
 
 
+## Development
+
+This project uses PDM for local development.
+
+```bash
+pdm install
+pdm run build
+pdm run lint
+pdm run test
+pdm run test-integration
+```
+
+For browser-backed tests, set `NODRIVER_BROWSER_EXECUTABLE` to a Chromium/Chrome executable path if
+auto-discovery is not enough.
+
+
 While usability and convenience is important. It’s also easy
 to fully customizable everything using the entire array of
 [CDP](https://chromedevtools.github.io/devtools-protocol/) domains, methods and events available.
