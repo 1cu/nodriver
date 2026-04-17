@@ -423,11 +423,11 @@ class Browser:
         self._http = HTTPApi((self.config.host, self.config.port))
         util.get_registered_instances().add(self)
         await asyncio.sleep(0.25)
-        for _ in range(5):
+        for _ in range(20):
             try:
                 self.info = ContraDict(await self._http.get("version"), silent=True)
             except (Exception,):
-                if _ == 4:
+                if _ == 19:
                     logger.debug("could not start", exc_info=True)
                 await asyncio.sleep(0.5)
             else:

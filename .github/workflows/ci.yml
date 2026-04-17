@@ -85,8 +85,8 @@ jobs:
           sudo apt-get install --no-install-recommends -y chromium xvfb
           echo "browser-path=$(command -v chromium || command -v chromium-browser)" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Chrome stable (Windows)
-        if: runner.os == 'Windows'
+      - name: Setup Chrome stable
+        if: runner.os != 'Linux'
         id: setup-chrome
         uses: browser-actions/setup-chrome@v2
         with:
@@ -99,14 +99,10 @@ jobs:
           NODRIVER_BROWSER_EXECUTABLE: ${{ steps.chromium.outputs.browser-path }}
         run: xvfb-run -a pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
 
-      - name: Run browser integration tests (Windows)
-        if: runner.os == 'Windows'
+      - name: Run browser integration tests (macOS/Windows)
+        if: runner.os != 'Linux'
         env:
           NODRIVER_BROWSER_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
-
-      - name: Run browser integration tests (macOS)
-        if: runner.os == 'macOS'
         run: pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
 
   docs:
