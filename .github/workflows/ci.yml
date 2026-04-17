@@ -55,7 +55,7 @@ jobs:
         run: pdm run build
 
       - name: Run smoke tests
-        run: pdm run test
+        run: pdm run pytest -vv --durations=10 --durations-min=0.1 -m "not integration"
 
   browser-integration:
     name: Browser integration (${{ matrix.os }})
@@ -85,25 +85,15 @@ jobs:
           sudo apt-get install --no-install-recommends -y chromium xvfb
           echo "browser-path=$(command -v chromium || command -v chromium-browser)" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Chrome stable
-        if: runner.os != 'Linux'
-        id: setup-chrome
-        uses: browser-actions/setup-chrome@v2
-        with:
-          chrome-version: stable
-          install-dependencies: false
-
       - name: Run browser integration tests (Linux)
         if: runner.os == 'Linux'
         env:
           NODRIVER_BROWSER_EXECUTABLE: ${{ steps.chromium.outputs.browser-path }}
-        run: xvfb-run -a pdm run test-integration
+        run: xvfb-run -a pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
 
       - name: Run browser integration tests (macOS/Windows)
         if: runner.os != 'Linux'
-        env:
-          NODRIVER_BROWSER_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
-        run: pdm run test-integration
+        run: pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
 
   docs:
     name: Docs

@@ -86,22 +86,15 @@ def _candidate_browser_paths() -> Iterator[Path]:
             yield path
 
     if sys.platform.startswith("win"):
-        local_app_data = os.environ.get("LOCALAPPDATA")
-        if local_app_data:
-            for path in (
-                Path(local_app_data) / "Chromium" / "Application" / "chrome.exe",
-                Path(local_app_data)
-                / "Google"
-                / "Chrome"
-                / "Application"
-                / "chrome.exe",
-                Path(local_app_data)
-                / "Microsoft"
-                / "Edge"
-                / "Application"
-                / "msedge.exe",
-            ):
-                yield path
+        for path in (
+            Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
+            Path(r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"),
+            Path(r"C:\Program Files\Chromium\Application\chrome.exe"),
+            Path(r"C:\Program Files (x86)\Chromium\Application\chrome.exe"),
+            Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
+            Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
+        ):
+            yield path
 
 
 def resolve_browser_executable() -> Path:
