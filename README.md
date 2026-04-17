@@ -21,6 +21,16 @@ with most method parameters having `best practice` defaults.
 Using 1 or 2 lines, this is up and running, providing best practice config
 by default. It cleans up created files (profile) afterwards.
 
+### Why nodriver
+
+nodriver is a full rewrite of the old chromedriver-based approach, built for fast browser automation,
+web scraping, bots, and other creative ideas that need direct browser control without the selenium/
+chromedriver stack. It speaks directly to the browser, is fully asynchronous, and is designed to work
+across Chromium-based browsers with sensible defaults and minimal setup.
+
+It’s aimed at quick prototyping and practical automation: one line to get started, built-in cleanup,
+and enough flexibility to drop down into the full CDP surface when you need deeper control.
+
 known to work with 
 - chromium
 - chrome
