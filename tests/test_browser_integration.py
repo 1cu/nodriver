@@ -1,13 +1,63 @@
 from __future__ import annotations
 
 import asyncio
+import time
+from typing import cast
 
 import pytest
 
-from nodriver import cdp
+from nodriver import Tab, cdp
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio(loop_scope="module")]
+
+
+def _target_summary(browser) -> str:
+    targets = getattr(browser, "targets", []) or []
+    if not targets:
+        return "none"
+
+    items = []
+    for target in targets[:5]:
+        raw_target = getattr(target, "target", None)
+        if raw_target is None:
+            items.append(repr(target))
+            continue
+
+        target_id = getattr(raw_target, "target_id", "?")
+        target_type = getattr(raw_target, "type", "?")
+        target_url = getattr(raw_target, "url", "")
+        items.append(f"{target_id}:{target_type}:{target_url}")
+
+    if len(targets) > 5:
+        items.append(f"...(+{len(targets) - 5} more)")
+    return "; ".join(items)
+
+
+async def _await_logged(label: str, awaitable, browser, tab=None):
+    started_at = time.monotonic()
+    tab_info = ""
+    if tab is not None:
+        tab_info = (
+            f" tab={getattr(tab, 'id', None)!r}"
+            f" url={getattr(tab, 'url', None)!r}"
+            f" closed={getattr(tab, 'closed', None)!r}"
+        )
+    print(
+        f"[integration-op] START {label}{tab_info} targets={_target_summary(browser)}",
+        flush=True,
+    )
+    result = await awaitable
+    elapsed = time.monotonic() - started_at
+    extra = ""
+    if label.endswith("get_content") and isinstance(result, str):
+        extra = f" content_len={len(result)}"
+    print(
+        f"[integration-op] END {label}{tab_info} elapsed={elapsed:.2f}s"
+        f" targets={_target_summary(browser)}{extra}",
+        flush=True,
+    )
+    return result
 
 
 async def test_browser_starts_headless(browser):
@@ -18,26 +68,40 @@ async def test_browser_starts_headless(browser):
 
 async def test_can_navigate_data_url_and_read_content(browser):
     tab = browser.main_tab
-    await tab.get("data:text/html,<html><body><h1>data url</h1></body></html>")
+    await _await_logged(
+        "tab.get(data-url)",
+        tab.get("data:text/html,<html><body><h1>data url</h1></body></html>"),
+        browser,
+        tab,
+    )
 
-    content = await tab.get_content()
+    content = await _await_logged("tab.get_content", tab.get_content(), browser, tab)
 
     assert "data url" in content.lower(), f"unexpected content: {content!r}"
 
 
 async def test_can_open_and_close_tab(browser):
     tab = browser.main_tab
-    new_tab = await tab.get(
-        "data:text/html,<html><body><p>new tab</p></body></html>",
-        new_tab=True,
+    new_tab = cast(
+        Tab,
+        await _await_logged(
+            "tab.get(new_tab)",
+            tab.get(
+                "data:text/html,<html><body><p>new tab</p></body></html>", new_tab=True
+            ),
+            browser,
+            tab,
+        ),
     )
 
-    await browser.update_targets()
+    await _await_logged("browser.update_targets#1", browser.update_targets(), browser)
     assert len(browser.tabs) >= 2
 
-    await new_tab.close()
+    await _await_logged("new_tab.close", new_tab.close(), browser, new_tab)
     for _ in range(50):
-        await browser.update_targets()
+        await _await_logged(
+            "browser.update_targets#poll", browser.update_targets(), browser
+        )
         if len(browser.tabs) == 1:
             break
         await asyncio.sleep(0.1)
@@ -54,8 +118,8 @@ async def test_event_handler_registration_smoke(browser, test_site):
     tab = browser.main_tab
     tab.add_handler(cdp.network.RequestWillBeSent, on_request)
     try:
-        await tab.get(test_site)
-        await tab.sleep(0.5)
+        await _await_logged("tab.get(test_site)", tab.get(test_site), browser, tab)
+        await _await_logged("tab.sleep(0.5)", tab.sleep(0.5), browser, tab)
 
         assert events, "no network events were captured"
         assert any(url.startswith(test_site) for url in events), (
