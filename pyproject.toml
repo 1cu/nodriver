@@ -79,6 +79,9 @@ markers = [
 [tool.isort]
 profile = "black"
 
+[tool.black]
+target-version = ["py310"]
+
 [tool.setuptools]
 include-package-data = true
 packages = ["nodriver", "nodriver.core", "nodriver.cdp"]
