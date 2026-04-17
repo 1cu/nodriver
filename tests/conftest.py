@@ -207,6 +207,11 @@ async def _start_browser(browser_executable: Path):
     )
     instance = Browser(config)
     started_at = time.monotonic()
+    print(
+        f"[integration] BROWSER START executable={browser_executable} "
+        f"startup_timeout={_browser_startup_timeout_seconds():.0f}s",
+        flush=True,
+    )
     try:
         await asyncio.wait_for(
             instance.start(), timeout=_browser_startup_timeout_seconds()
@@ -222,11 +227,23 @@ async def _start_browser(browser_executable: Path):
         await _stop_browser(instance)
         raise RuntimeError(details) from exc
 
+    elapsed = time.monotonic() - started_at
+    proc = getattr(instance, "_process", None)
+    pid = getattr(proc, "pid", None) if proc else None
+    print(
+        f"[integration] BROWSER READY elapsed={elapsed:.2f}s pid={pid} "
+        f"targets={_target_summary(instance)}",
+        flush=True,
+    )
+
     return instance
 
 
 async def _stop_browser(instance):
     proc = getattr(instance, "_process", None)
+    started_at = time.monotonic()
+    pid = getattr(proc, "pid", None) if proc else None
+    print(f"[integration] BROWSER STOP start pid={pid}", flush=True)
     instance.stop()
     if proc is not None:
         try:
@@ -234,33 +251,64 @@ async def _stop_browser(instance):
         except asyncio.TimeoutError:
             proc.kill()
             await asyncio.wait_for(proc.wait(), timeout=10)
+    print(
+        f"[integration] BROWSER STOP end elapsed={time.monotonic() - started_at:.2f}s "
+        f"returncode={getattr(proc, 'returncode', None) if proc else None}",
+        flush=True,
+    )
 
 
-@pytest.fixture(autouse=True)
-def integration_test_diagnostics(request):
-    if not request.node.get_closest_marker("integration"):
+def _integration_requested_fixtures(item) -> list[str]:
+    return [
+        name
+        for name in ("browser", "isolated_browser", "browser_executable", "test_site")
+        if name in item.fixturenames
+    ]
+
+
+def _integration_log_phase(phase: str, item, elapsed: float | None = None):
+    suffix = f" elapsed={elapsed:.2f}s" if elapsed is not None else ""
+    print(
+        f"[integration] {phase} {item.nodeid} fixtures={_integration_requested_fixtures(item)}"
+        f"{suffix}",
+        flush=True,
+    )
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_setup(item):
+    if not item.get_closest_marker("integration"):
         yield
         return
 
     started_at = time.monotonic()
-    browser_executable = request.getfixturevalue("browser_executable")
-    requested_fixtures = [
-        name for name in ("browser", "isolated_browser") if name in request.fixturenames
-    ]
-    print(
-        f"[integration] START {request.node.nodeid} "
-        f"fixtures={requested_fixtures} "
-        f"browser_executable={browser_executable}",
-        flush=True,
-    )
-    try:
+    _integration_log_phase("SETUP START", item)
+    yield
+    _integration_log_phase("SETUP END", item, time.monotonic() - started_at)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+    if not item.get_closest_marker("integration"):
         yield
-    finally:
-        elapsed = time.monotonic() - started_at
-        print(
-            f"[integration] END {request.node.nodeid} elapsed={elapsed:.2f}s",
-            flush=True,
-        )
+        return
+
+    started_at = time.monotonic()
+    _integration_log_phase("CALL START", item)
+    yield
+    _integration_log_phase("CALL END", item, time.monotonic() - started_at)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_teardown(item):
+    if not item.get_closest_marker("integration"):
+        yield
+        return
+
+    started_at = time.monotonic()
+    _integration_log_phase("TEARDOWN START", item)
+    yield
+    _integration_log_phase("TEARDOWN END", item, time.monotonic() - started_at)
 
 
 @pytest_asyncio.fixture(scope="module", loop_scope="module")
