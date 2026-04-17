@@ -236,6 +236,33 @@ async def _stop_browser(instance):
             await asyncio.wait_for(proc.wait(), timeout=10)
 
 
+@pytest.fixture(autouse=True)
+def integration_test_diagnostics(request):
+    if not request.node.get_closest_marker("integration"):
+        yield
+        return
+
+    started_at = time.monotonic()
+    browser_executable = request.getfixturevalue("browser_executable")
+    requested_fixtures = [
+        name for name in ("browser", "isolated_browser") if name in request.fixturenames
+    ]
+    print(
+        f"[integration] START {request.node.nodeid} "
+        f"fixtures={requested_fixtures} "
+        f"browser_executable={browser_executable}",
+        flush=True,
+    )
+    try:
+        yield
+    finally:
+        elapsed = time.monotonic() - started_at
+        print(
+            f"[integration] END {request.node.nodeid} elapsed={elapsed:.2f}s",
+            flush=True,
+        )
+
+
 @pytest_asyncio.fixture(scope="module", loop_scope="module")
 async def browser(browser_executable: Path):
     instance = await _start_browser(browser_executable)

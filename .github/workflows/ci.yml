@@ -101,14 +101,14 @@ jobs:
         env:
           NODRIVER_BROWSER_EXECUTABLE: ${{ steps.chromium.outputs.browser-path }}
         timeout-minutes: 4
-        run: xvfb-run -a pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
+        run: xvfb-run -a pdm run pytest -vv --capture=tee-sys --durations=10 --durations-min=0.1 -m integration
 
       - name: Run browser integration tests (macOS/Windows)
         if: runner.os != 'Linux'
         env:
           NODRIVER_BROWSER_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
         timeout-minutes: 4
-        run: pdm run pytest -vv --durations=10 --durations-min=0.1 -m integration
+        run: pdm run pytest -vv --capture=tee-sys --durations=10 --durations-min=0.1 -m integration
 
   docs:
     name: Docs
