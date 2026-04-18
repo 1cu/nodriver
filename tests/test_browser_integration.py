@@ -66,11 +66,14 @@ async def test_can_navigate_data_url_and_read_content(browser):
     _log_checkpoint("before browser.main_tab", browser)
     tab = browser.main_tab
     _log_checkpoint("after browser.main_tab", browser, tab)
-    await _await_logged(
-        "tab.get(data-url)",
-        tab.get("data:text/html,<html><body><h1>data url</h1></body></html>"),
-        browser,
-        tab,
+    await asyncio.wait_for(
+        _await_logged(
+            "tab.get(data-url)",
+            tab.get("data:text/html,<html><body><h1>data url</h1></body></html>"),
+            browser,
+            tab,
+        ),
+        timeout=10,
     )
 
     content = await _await_logged("tab.get_content", tab.get_content(), browser, tab)

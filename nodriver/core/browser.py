@@ -386,13 +386,15 @@ class Browser:
             )
             if not pathlib.Path(self.config.browser_executable_path).exists():
                 raise FileNotFoundError(
-                    ("""
+                    (
+                        """
                     ---------------------
                     Could not determine browser executable.
                     ---------------------
                     Make sure your browser is installed in the default location (path).
                     If you are sure about the browser executable, you can specify it using
-                    the `browser_executable_path='{}` parameter.""").format(
+                    the `browser_executable_path='{}` parameter."""
+                    ).format(
                         "/path/to/browser/executable"
                         if is_posix
                         else "c:/path/to/your/browser.exe"
@@ -440,13 +442,15 @@ class Browser:
                 break
 
         if not self.info:
-            raise Exception(("""
+            raise Exception((
+                """
                 ---------------------
                 Failed to connect to browser
                 ---------------------
                 One of the causes could be when you are running as root.
                 In that case you need to pass no_sandbox=True 
-                """))
+                """
+            ))
 
         self.connection = Connection(self.info.webSocketDebuggerUrl, browser=self)
 
@@ -569,7 +573,11 @@ class Browser:
 
     async def update_targets(self):
         targets: List[cdp.target.TargetInfo]
-        targets = await self._get_targets()
+        try:
+            targets = await asyncio.wait_for(self._get_targets(), timeout=5.0)
+        except asyncio.TimeoutError:
+            logger.debug("timed out while refreshing targets")
+            return
         target_ids = [t.target_id for t in targets]
         existing_target_ids = [t.target_id for t in self.targets]
         for t in targets:

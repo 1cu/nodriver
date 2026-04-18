@@ -63,7 +63,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # TODO: Re-enable macOS once the browser integration hang on data URLs is fixed.
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     env:
       NODRIVER_BROWSER_STARTUP_TIMEOUT: "60"
