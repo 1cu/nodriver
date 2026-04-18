@@ -1,23 +1,25 @@
 # Repository guide
 
 ## Layout
-- `nodriver/core/` is the handwritten runtime; public entrypoints are re-exported from `nodriver/__init__.py` (`start`, `Browser`, `Tab`, `Config`, `Element`).
-- `nodriver/cdp/` is generated CDP code. Do not edit those files by hand; regenerate from the CDP spec via `generate_cdp.py` / PyCDP.
-- `third_party/devtools-protocol/` contains vendored CDP protocol snapshots used by `generate_cdp.py`; update those JSON files together with any generator changes, and keep the vendored license/README (including the pinned upstream commit SHA) in sync.
-- `example/` holds runnable demos, not tests.
-- `docs/` is Sphinx docs; build outputs under `docs/_build/html` and `docs/_build/markdown` are intentionally kept in the repo.
-
-## Contribution policy
-- Upstream does not accept issues or pull requests, so we never contribute local changes upstream.
-- Make changes only in non-generated code files; do not modify generated files directly.
-- Third-party vendored protocol snapshots are an exception to the generated-code rule: edit them only when intentionally refreshing the pinned CDP source, and treat them as source inputs rather than hand-maintained library code.
+- `nodriver/core/` is handwritten runtime; `nodriver/__init__.py` re-exports the public API (`start`, `Browser`, `Tab`, `Config`, `Element`).
+- `nodriver/cdp/` is generated CDP code; do not hand-edit it. Regenerate from `generate_cdp.py`, which reads `third_party/devtools-protocol/{browser_protocol.json,js_protocol.json}`.
+- `tests/` contains unit tests and browser integration tests; `example/` is runnable demos, not tests.
+- `docs/` is Sphinx docs. `docs/_build/html` and `docs/_build/markdown` are checked in on purpose.
 
 ## Commands
-- Build docs from `docs/` with `make html` or `make markdown`.
-- Package check/build with `python -m build`.
-- Repo formatting is the black/isort combo used in the helper script: `black nodriver/core/*.py` and `isort nodriver/core`.
+- Use PDM, not tox.
+- `pdm install -G build -G lint -G test -G docs`
+- `pdm run lint`
+- `pdm run pytest -q tests/test_config.py` for one unit test file, or append `::test_name` for a single test.
+- `pdm run pytest -q -m integration tests/test_browser_integration.py` for browser-backed tests.
+- `pdm run build`
+- `pdm run docs-html` / `pdm run docs-markdown`
 
-## Gotchas
-- Chrome/Chromium must be installed locally; on headless Linux, use headless mode or Xvfb.
-- There is no active repo test suite (`tox.ini` is a commented sample, and there is no `tests/` tree), so do not waste time searching for a pytest target.
-- Regenerating CDP code should use the vendored protocol snapshots; do not rely on live `master` fetches unless you are explicitly refreshing those inputs.
+## Browser / integration tests
+- Browser tests need a Chromium/Chrome executable; set `NODRIVER_BROWSER_EXECUTABLE` if auto-discovery does not find one.
+- On headless Linux, reproduction may need `xvfb-run`, matching CI.
+
+## Generated / vendored inputs
+- If you refresh CDP, update the vendored protocol JSONs together and keep their README/license and pinned SHA in sync.
+- Do not edit generated docs under `docs/_build` by hand.
+- `black`/`isort` checks are scoped to `nodriver/core`; do not reformat generated files unless regenerating them.

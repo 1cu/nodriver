@@ -131,7 +131,13 @@ class Browser:
     @property
     def main_tab(self) -> tab.Tab:
         """returns the target which was launched with the browser"""
-        return sorted(self.targets, key=lambda x: x.type_ == "page", reverse=True)[0]
+        pages = sorted(self.targets, key=lambda x: x.type_ == "page", reverse=True)
+        if not pages:
+            raise RuntimeError(
+                "Browser has no discovered targets yet. "
+                "Ensure browser.start() has completed."
+            )
+        return pages[0]
 
     @property
     def tabs(self) -> List[tab.Tab]:
@@ -380,15 +386,13 @@ class Browser:
             )
             if not pathlib.Path(self.config.browser_executable_path).exists():
                 raise FileNotFoundError(
-                    (
-                        """
+                    ("""
                     ---------------------
                     Could not determine browser executable.
                     ---------------------
                     Make sure your browser is installed in the default location (path).
                     If you are sure about the browser executable, you can specify it using
-                    the `browser_executable_path='{}` parameter."""
-                    ).format(
+                    the `browser_executable_path='{}` parameter.""").format(
                         "/path/to/browser/executable"
                         if is_posix
                         else "c:/path/to/your/browser.exe"
@@ -425,28 +429,24 @@ class Browser:
         self._http = HTTPApi((self.config.host, self.config.port))
         util.get_registered_instances().add(self)
         await asyncio.sleep(0.25)
-        for _ in range(5):
+        for _ in range(20):
             try:
                 self.info = ContraDict(await self._http.get("version"), silent=True)
             except (Exception,):
-                if _ == 4:
+                if _ == 19:
                     logger.debug("could not start", exc_info=True)
                 await asyncio.sleep(0.5)
             else:
                 break
 
         if not self.info:
-            raise Exception(
-                (
-                    """
+            raise Exception(("""
                 ---------------------
                 Failed to connect to browser
                 ---------------------
                 One of the causes could be when you are running as root.
                 In that case you need to pass no_sandbox=True 
-                """
-                )
-            )
+                """))
 
         self.connection = Connection(self.info.webSocketDebuggerUrl, browser=self)
 
@@ -467,8 +467,7 @@ class Browser:
             ]
             await self.connection.send(cdp.target.set_discover_targets(discover=True))
 
-        await self.update_targets()
-        await self
+        await self._wait_for_initial_targets()
 
     async def grant_all_permissions(self):
         """
@@ -570,7 +569,11 @@ class Browser:
 
     async def update_targets(self):
         targets: List[cdp.target.TargetInfo]
-        targets = await self._get_targets()
+        try:
+            targets = await asyncio.wait_for(self._get_targets(), timeout=5.0)
+        except asyncio.TimeoutError:
+            logger.debug("timed out while refreshing targets")
+            return
         target_ids = [t.target_id for t in targets]
         existing_target_ids = [t.target_id for t in self.targets]
         for t in targets:
@@ -593,6 +596,15 @@ class Browser:
                 )
 
         await asyncio.sleep(0)
+
+    async def _wait_for_initial_targets(
+        self, retries: int = 20, delay: float = 0.1
+    ) -> None:
+        for _ in range(retries):
+            await self.update_targets()
+            if self.tabs:
+                return
+            await asyncio.sleep(delay)
 
     def __iter__(self):
         self._i = self.tabs.index(self.main_tab)

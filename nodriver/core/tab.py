@@ -226,17 +226,13 @@ class Tab(Connection):
             return
         if self.browser:
             await self._send_oneshot(cdp.page.enable())
-            await self._send_oneshot(
-                cdp.page.add_script_to_evaluate_on_new_document(
-                    """
+            await self._send_oneshot(cdp.page.add_script_to_evaluate_on_new_document("""
                     console.log("hooking attachShadow");
                     Element.prototype._attachShadow = Element.prototype.attachShadow;
                     Element.prototype.attachShadow = function () {
                         console.log('calling hooked attachShadow')
                         return this._attachShadow( { mode: "open" } );
-                    };"""
-                )
-            )
+                    };"""))
 
         setattr(self, "_prep_expert_done", True)
 
@@ -889,8 +885,7 @@ class Tab(Connection):
             ]...
             '
         """
-        js_code_a = (
-            """
+        js_code_a = """
                                                    function ___dump(obj, _d = 0) {
                                                        let _typesA = ['object', 'function'];
                                                        let _typesB = ['number', 'string', 'boolean'];
@@ -961,11 +956,8 @@ class Tab(Connection):
                         
                                                    }
                                                    ___dumpY( %s )
-                                           """
-            % obj_name
-        )
-        js_code_b = (
-            """
+                                           """ % obj_name
+        js_code_b = """
                                     ((obj, visited = new WeakSet()) => {
                                          if (visited.has(obj)) {
                                              return {}
@@ -990,9 +982,7 @@ class Tab(Connection):
                                              }
                                         return result;
                                     })(%s)
-                                """
-            % obj_name
-        )
+                                """ % obj_name
 
         # we're purposely not calling self.evaluate here to prevent infinite loop on certain expressions
 
@@ -1144,7 +1134,7 @@ class Tab(Connection):
         available_states = ["minimized", "maximized", "fullscreen", "normal"]
         window_id: cdp.browser.WindowID
         bounds: cdp.browser.Bounds
-        (window_id, bounds) = await self.get_window()
+        window_id, bounds = await self.get_window()
 
         for state_name in available_states:
             if all(x in state_name for x in state.lower()):
@@ -1178,7 +1168,7 @@ class Tab(Connection):
         """
         window_id: cdp.browser.WindowID
         bounds: cdp.browser.Bounds
-        (window_id, bounds) = await self.get_window()
+        window_id, bounds = await self.get_window()
 
         await self.send(
             cdp.input_.synthesize_scroll_gesture(
@@ -1205,7 +1195,7 @@ class Tab(Connection):
         """
         window_id: cdp.browser.WindowID
         bounds: cdp.browser.Bounds
-        (window_id, bounds) = await self.get_window()
+        window_id, bounds = await self.get_window()
 
         await self.send(
             cdp.input_.synthesize_scroll_gesture(
@@ -1655,13 +1645,11 @@ class Tab(Connection):
         :rtype:
         """
         if self.browser and self.browser.config and self.browser.config.expert:
-            raise Exception(
-                """
+            raise Exception("""
                             this function is useless in expert mode, since it disables site-isolation-trials.
                             while this is a useful future to have access to all elements (also in iframes),
                             it is also being detected
-                            """
-            )
+                            """)
         x, y = await self.template_location(template_image=template_image)
         await self.mouse_click(x, y)
         if flash:
@@ -1699,16 +1687,14 @@ class Tab(Connection):
         try:
             import cv2
         except ImportError:
-            logger.warning(
-                """
+            logger.warning("""
                 missing package
                 ----------------
                 template_location function needs the computer vision library "opencv-python" installed
                 to install:
                 pip install opencv-python
             
-            """
-            )
+            """)
             return
         try:
 
@@ -1731,8 +1717,8 @@ class Tab(Connection):
                 template = cv2.imread("cf_template.png")
             template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
             match = cv2.matchTemplate(im_gray, template_gray, cv2.TM_CCOEFF_NORMED)
-            (min_v, max_v, min_l, max_l) = cv2.minMaxLoc(match)
-            (xs, ys) = max_l
+            min_v, max_v, min_l, max_l = cv2.minMaxLoc(match)
+            xs, ys = max_l
             tmp_h, tmp_w = template_gray.shape[:2]
             xe = xs + tmp_w
             ye = ys + tmp_h
@@ -1956,9 +1942,7 @@ class Tab(Connection):
     
                 setTimeout( () => document.getElementById('{1:s}').remove(), {2:d});
     
-            """.format(
-                style, secrets.token_hex(8), int(duration * 1000)
-            )
+            """.format(style, secrets.token_hex(8), int(duration * 1000))
             .replace("  ", "")
             .replace("\n", "")
         )

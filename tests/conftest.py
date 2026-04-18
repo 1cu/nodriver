@@ -5,6 +5,7 @@ import os
 import shutil
 import socketserver
 import asyncio
+import time
 import subprocess
 import sys
 import threading
@@ -14,7 +15,8 @@ from typing import Iterator
 import pytest
 import pytest_asyncio
 
-from nodriver import start
+from nodriver.core.browser import Browser
+from nodriver.core.config import Config
 
 
 class _ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -86,22 +88,15 @@ def _candidate_browser_paths() -> Iterator[Path]:
             yield path
 
     if sys.platform.startswith("win"):
-        local_app_data = os.environ.get("LOCALAPPDATA")
-        if local_app_data:
-            for path in (
-                Path(local_app_data) / "Chromium" / "Application" / "chrome.exe",
-                Path(local_app_data)
-                / "Google"
-                / "Chrome"
-                / "Application"
-                / "chrome.exe",
-                Path(local_app_data)
-                / "Microsoft"
-                / "Edge"
-                / "Application"
-                / "msedge.exe",
-            ):
-                yield path
+        for path in (
+            Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
+            Path(r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"),
+            Path(r"C:\Program Files\Chromium\Application\chrome.exe"),
+            Path(r"C:\Program Files (x86)\Chromium\Application\chrome.exe"),
+            Path(r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"),
+            Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
+        ):
+            yield path
 
 
 def resolve_browser_executable() -> Path:
@@ -119,28 +114,219 @@ def resolve_browser_executable() -> Path:
     raise RuntimeError(msg)
 
 
+def _browser_startup_timeout_seconds() -> float:
+    raw = os.environ.get("NODRIVER_BROWSER_STARTUP_TIMEOUT", "60")
+    try:
+        return float(raw)
+    except ValueError:
+        return 60.0
+
+
+def _tail(text: str | bytes | None, limit: int = 4000) -> str:
+    if text is None:
+        return ""
+    if isinstance(text, bytes):
+        text = text.decode("utf-8", errors="replace")
+    return text[-limit:]
+
+
+def _target_summary(instance: Browser) -> str:
+    targets = getattr(instance, "targets", []) or []
+    if not targets:
+        return "none"
+
+    items = []
+    for target in targets[:5]:
+        raw_target = getattr(target, "target", None)
+        if raw_target is None:
+            items.append(repr(target))
+            continue
+
+        target_id = getattr(raw_target, "target_id", "?")
+        target_type = getattr(raw_target, "type", "?")
+        target_url = getattr(raw_target, "url", "")
+        items.append(f"{target_id}:{target_type}:{target_url}")
+
+    if len(targets) > 5:
+        items.append(f"...(+{len(targets) - 5} more)")
+    return "; ".join(items)
+
+
+async def _process_output_tail(proc: asyncio.subprocess.Process) -> tuple[str, str]:
+    try:
+        if proc.returncode is None:
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=5)
+        return _tail(stdout), _tail(stderr)
+    except Exception as exc:  # noqa: BLE001
+        return "", f"<failed to collect browser output: {exc!r}>"
+
+
+async def _browser_failure_details(
+    instance: Browser,
+    browser_executable: Path,
+    elapsed: float,
+    reason: Exception,
+) -> str:
+    proc = getattr(instance, "_process", None)
+    pid = getattr(proc, "pid", None) if proc else None
+    returncode = getattr(proc, "returncode", None) if proc else None
+    stdout_tail = ""
+    stderr_tail = ""
+
+    if proc is not None:
+        stdout_tail, stderr_tail = await _process_output_tail(proc)
+
+    return (
+        "browser startup failed\n"
+        f"  executable: {browser_executable}\n"
+        f"  timeout_s: {_browser_startup_timeout_seconds()}\n"
+        f"  elapsed_s: {elapsed:.2f}\n"
+        f"  pid: {pid}\n"
+        f"  returncode: {returncode}\n"
+        f"  targets: {_target_summary(instance)}\n"
+        f"  reason: {reason!r}\n"
+        f"  stdout_tail: {stdout_tail or '<empty>'}\n"
+        f"  stderr_tail: {stderr_tail or '<empty>'}"
+    )
+
+
 @pytest.fixture(scope="session")
 def browser_executable() -> Path:
     return resolve_browser_executable()
 
 
-@pytest_asyncio.fixture
-async def browser(browser_executable: Path):
-    instance = await start(
+async def _start_browser(browser_executable: Path):
+    config = Config(
         headless=True,
         browser_executable_path=str(browser_executable),
+        sandbox=False,
     )
+    instance = Browser(config)
+    started_at = time.monotonic()
+    print(
+        f"[integration] BROWSER START executable={browser_executable} "
+        f"startup_timeout={_browser_startup_timeout_seconds():.0f}s",
+        flush=True,
+    )
+    try:
+        await asyncio.wait_for(
+            instance.start(), timeout=_browser_startup_timeout_seconds()
+        )
+    except Exception as exc:  # noqa: BLE001
+        elapsed = time.monotonic() - started_at
+        details = await _browser_failure_details(
+            instance,
+            browser_executable,
+            elapsed,
+            exc,
+        )
+        await _stop_browser(instance)
+        raise RuntimeError(details) from exc
+
+    elapsed = time.monotonic() - started_at
+    proc = getattr(instance, "_process", None)
+    pid = getattr(proc, "pid", None) if proc else None
+    print(
+        f"[integration] BROWSER READY elapsed={elapsed:.2f}s pid={pid} "
+        f"targets={_target_summary(instance)}",
+        flush=True,
+    )
+
+    return instance
+
+
+async def _stop_browser(instance):
+    proc = getattr(instance, "_process", None)
+    started_at = time.monotonic()
+    pid = getattr(proc, "pid", None) if proc else None
+    print(f"[integration] BROWSER STOP start pid={pid}", flush=True)
+    instance.stop()
+    if proc is not None:
+        try:
+            await asyncio.wait_for(proc.wait(), timeout=10)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await asyncio.wait_for(proc.wait(), timeout=10)
+    print(
+        f"[integration] BROWSER STOP end elapsed={time.monotonic() - started_at:.2f}s "
+        f"returncode={getattr(proc, 'returncode', None) if proc else None}",
+        flush=True,
+    )
+
+
+def _integration_requested_fixtures(item) -> list[str]:
+    return [
+        name
+        for name in ("browser", "isolated_browser", "browser_executable", "test_site")
+        if name in item.fixturenames
+    ]
+
+
+def _integration_log_phase(phase: str, item, elapsed: float | None = None):
+    suffix = f" elapsed={elapsed:.2f}s" if elapsed is not None else ""
+    print(
+        f"[integration] {phase} {item.nodeid} fixtures={_integration_requested_fixtures(item)}"
+        f"{suffix}",
+        flush=True,
+    )
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_setup(item):
+    if not item.get_closest_marker("integration"):
+        yield
+        return
+
+    started_at = time.monotonic()
+    _integration_log_phase("SETUP START", item)
+    yield
+    _integration_log_phase("SETUP END", item, time.monotonic() - started_at)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+    if not item.get_closest_marker("integration"):
+        yield
+        return
+
+    started_at = time.monotonic()
+    _integration_log_phase("CALL START", item)
+    yield
+    _integration_log_phase("CALL END", item, time.monotonic() - started_at)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_teardown(item):
+    if not item.get_closest_marker("integration"):
+        yield
+        return
+
+    started_at = time.monotonic()
+    _integration_log_phase("TEARDOWN START", item)
+    yield
+    _integration_log_phase("TEARDOWN END", item, time.monotonic() - started_at)
+
+
+@pytest_asyncio.fixture(scope="module", loop_scope="module")
+async def browser(browser_executable: Path):
+    instance = await _start_browser(browser_executable)
     try:
         yield instance
     finally:
-        proc = getattr(instance, "_process", None)
-        instance.stop()
-        if proc is not None:
-            try:
-                await asyncio.wait_for(proc.wait(), timeout=10)
-            except asyncio.TimeoutError:
-                proc.kill()
-                await asyncio.wait_for(proc.wait(), timeout=10)
+        await _stop_browser(instance)
+
+
+@pytest_asyncio.fixture(scope="function", loop_scope="module")
+async def isolated_browser(browser_executable: Path):
+    instance = await _start_browser(browser_executable)
+    try:
+        yield instance
+    finally:
+        await _stop_browser(instance)
 
 
 @pytest.fixture(scope="session")

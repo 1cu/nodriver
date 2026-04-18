@@ -79,6 +79,9 @@ markers = [
 [tool.isort]
 profile = "black"
 
+[tool.black]
+target-version = ["py310"]
+
 [tool.setuptools]
 include-package-data = true
 packages = ["nodriver", "nodriver.core", "nodriver.cdp"]
@@ -86,3 +89,10 @@ packages = ["nodriver", "nodriver.core", "nodriver.cdp"]
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.basedpyright]
+# https://docs.basedpyright.com/latest/configuration/config-files/
+include = ["nodriver", "tests", "example", "generate_cdp.py", "_update_changes.py"]
+defineConstant = { DEBUG = false }
+pythonVersion = "3.10"
+typeCheckingMode = "standard"

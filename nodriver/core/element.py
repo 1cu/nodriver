@@ -414,10 +414,7 @@ class Element:
         )
 
     async def get_js_attributes(self):
-        return ContraDict(
-            json.loads(
-                await self.apply(
-                    """
+        return ContraDict(json.loads(await self.apply("""
             function (e) {
                 let o = {}
                 for(let k in e){
@@ -425,10 +422,7 @@ class Element:
                 }
                 return JSON.stringify(o)
             }
-            """
-                )
-            )
-        )
+            """)))
 
     def __await__(self):
         return self.update().__await__()
@@ -756,14 +750,12 @@ class Element:
 
         """
         if self.node_name == "OPTION":
-            await self.apply(
-                """
+            await self.apply("""
                 (o) => {  
                     o.selected = true ; 
                     o.dispatchEvent(new Event('change', {view: window,bubbles: true}))
                 }
-                """
-            )
+                """)
 
     async def set_value(self, value):
         await self._tab.send(cdp.dom.set_node_value(node_id=self.node_id, value=value))
