@@ -131,7 +131,13 @@ class Browser:
     @property
     def main_tab(self) -> tab.Tab:
         """returns the target which was launched with the browser"""
-        return sorted(self.targets, key=lambda x: x.type_ == "page", reverse=True)[0]
+        pages = sorted(self.targets, key=lambda x: x.type_ == "page", reverse=True)
+        if not pages:
+            raise RuntimeError(
+                "Browser has no discovered targets yet. "
+                "Ensure browser.start() has completed."
+            )
+        return pages[0]
 
     @property
     def tabs(self) -> List[tab.Tab]:
@@ -461,8 +467,7 @@ class Browser:
             ]
             await self.connection.send(cdp.target.set_discover_targets(discover=True))
 
-        await self.update_targets()
-        await self
+        await self._wait_for_initial_targets()
 
     async def grant_all_permissions(self):
         """
@@ -587,6 +592,15 @@ class Browser:
                 )
 
         await asyncio.sleep(0)
+
+    async def _wait_for_initial_targets(
+        self, retries: int = 20, delay: float = 0.1
+    ) -> None:
+        for _ in range(retries):
+            await self.update_targets()
+            if self.tabs:
+                return
+            await asyncio.sleep(delay)
 
     def __iter__(self):
         self._i = self.tabs.index(self.main_tab)
