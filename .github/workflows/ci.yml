@@ -21,7 +21,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Python and PDM
         uses: pdm-project/setup-pdm@v4
@@ -47,7 +47,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Python and PDM
         uses: pdm-project/setup-pdm@v4
@@ -79,7 +79,7 @@ jobs:
       NODRIVER_BROWSER_STARTUP_TIMEOUT: "60"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Python and PDM
         uses: pdm-project/setup-pdm@v4
@@ -127,7 +127,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Python and PDM
         uses: pdm-project/setup-pdm@v4
